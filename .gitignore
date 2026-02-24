@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+
+_cache_*.pkl
+unified_signals.csv
+
+# venv 虚拟环境不提交
+venv/
+
+POLYGON_API_KEY.txt
+GMAIL_APP_PASSWORD.txt
+
+nltk_data/
+
+.DS_Store

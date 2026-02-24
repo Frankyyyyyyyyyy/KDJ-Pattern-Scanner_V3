@@ -1,0 +1,66 @@
+[2026-02-21 10:46:06] Starting run_strategy.py
+ROOT_DIR=/Users/fan/Documents/temp/KDJ-Pattern-Scanner_V2
+FORCE_RUN=0
+SKIP_EMAIL=0
+LIMIT_TICKERS=
+PY_BIN=venv/bin/python
+2026-02-21 10:46:08 [INFO] 📅 交易日确认: 2026-02-20 (Market Open)
+2026-02-21 10:46:08 [INFO] Loading and updating metadata from stock_list.csv...
+2026-02-21 10:46:08 [INFO] Metadata updated (skipped volume fetch to avoid rate limit).
+2026-02-21 10:46:08 [INFO] 本地缓存数据较旧，将重新拉取: ['GOOGL', 'QQQ', 'SPY', 'SOXL', 'IWM', 'NVDA', 'AMZN', 'PLTR', 'TSLA', 'AAPL', 'HOOD', 'MSFT', 'AMD', 'MU', 'COIN', 'META']
+2026-02-21 10:46:08 [INFO] 从本地缓存加载部分数据: _cache_20260220.pkl (0 tickers), 缺失 16
+2026-02-21 10:46:08 [INFO] 数据源 [Polygon.io]: 获取 16 只股票...
+2026-02-21 10:46:08 [INFO]   Polygon: [1/16] SPY
+2026-02-21 10:46:24 [INFO]   Polygon: [2/16] SOXL
+2026-02-21 10:46:52 [INFO]   Polygon: [3/16] QQQ
+2026-02-21 10:47:19 [INFO]   Polygon: [4/16] IWM
+2026-02-21 10:47:46 [INFO]   Polygon: [5/16] NVDA
+2026-02-21 10:48:14 [INFO]   Polygon: [6/16] AMZN
+2026-02-21 10:48:42 [INFO]   Polygon: [7/16] PLTR
+2026-02-21 10:49:10 [INFO]   Polygon: [8/16] TSLA
+2026-02-21 10:49:37 [INFO]   Polygon: [9/16] AAPL
+2026-02-21 10:50:04 [INFO]   Polygon: [10/16] HOOD
+2026-02-21 10:50:32 [INFO]   Polygon: [11/16] GOOGL
+2026-02-21 10:51:00 [INFO]   Polygon: [12/16] MSFT
+2026-02-21 10:51:27 [INFO]   Polygon: [13/16] AMD
+2026-02-21 10:51:55 [INFO]   Polygon: [14/16] MU
+2026-02-21 10:52:22 [INFO]   Polygon: [15/16] COIN
+2026-02-21 10:52:49 [INFO]   Polygon: [16/16] META
+2026-02-21 10:53:18 [INFO]   Polygon 获取成功: 16/16
+2026-02-21 10:53:18 [INFO] 数据已缓存: _cache_20260220.pkl (16 tickers)
+2026-02-21 10:53:18 [INFO] 数据加载完成: 16/16 成功
+2026-02-21 10:53:18 [INFO] AAPL Data Loaded: 377 rows. Last Date: 2026-02-20 00:00:00
+2026-02-21 10:53:18 [INFO] Processing Index QQQ...
+2026-02-21 10:53:18 [INFO] 🚀 Detected Apple Silicon (arm64). Optimizing for 8 cores.
+2026-02-21 10:53:18 [INFO] Starting parallel scanning with 7 workers...
+2026-02-21 10:53:21 [INFO] Progress: 5/16 tickers scanned.
+2026-02-21 10:53:22 [INFO] Progress: 10/16 tickers scanned.
+2026-02-21 10:53:23 [INFO] Progress: 15/16 tickers scanned.
+2026-02-21 10:53:23 [INFO] ============================================================
+2026-02-21 10:53:23 [INFO] UNIFIED TRADING SIGNALS (V2 PARALLEL)
+2026-02-21 10:53:23 [INFO] ============================================================
+2026-02-21 10:53:23 [INFO] 当前季度 CSV 已更新: signals_2026Q1.csv (492 条信号)
+2026-02-21 10:53:24 [INFO] Preparing email report...
+2026-02-21 10:53:31 [INFO] Email sent successfully to wfancool@outlook.com
+ Date (日期) Ticker (股票代码)   Name (名称) Type (类型)  Volume (成交量) Signal Strength Direction (方向) ML_Prob                                 ML_Detail                                               Pattern (形态)  Daily_J  Weekly_J  Price  ATR  Stop_Loss (止损)  Suggested_Shares (建议股数)  Position_Size (建议仓位$)
+2026-01-22           IWM 罗素2000指数ETF Index ETF      35110779    Strong + Div          Short   35.4% XGB:0.58|LGB:0.41|LR:0.32|N:323|Base:0.31                                                 Doji (十字星)    86.78    103.15 269.79 3.73          277.25                       67                  18075
+2026-01-20           IWM 罗素2000指数ETF Index ETF      47911489          Strong          Short   27.9% XGB:0.10|LGB:0.20|LR:0.35|N:321|Base:0.31 Doji (十字星), Doji (十字星), Doji (十字星), Doji (十字星), Doji (十字星)    75.26     95.68 262.58 3.55          269.68                       70                  18380
+2026-01-16           IWM 罗素2000指数ETF Index ETF      33844875    Strong + Div          Short   40.2% XGB:0.73|LGB:0.58|LR:0.45|N:320|Base:0.32                                     Doji (十字星), Doji (十字星)    98.06    100.98 265.76 3.46          272.68                       72                  19134
+2026-01-15           IWM 罗素2000指数ETF Index ETF      33465208    Strong + Div          Short   39.8% XGB:0.48|LGB:0.77|LR:0.50|N:319|Base:0.32                                                 Doji (十字星)   102.52    100.81 265.51 3.53          272.57                       70                  18585
+2026-01-14           IWM 罗素2000指数ETF Index ETF      37164298    Strong + Div          Short   36.0% XGB:0.38|LGB:0.53|LR:0.50|N:318|Base:0.32                                                 Doji (十字星)   108.86    103.34 263.19 3.51          270.21                       71                  18686
+2026-01-13           IWM 罗素2000指数ETF Index ETF      33882364          Strong          Short   36.4% XGB:0.52|LGB:0.42|LR:0.51|N:317|Base:0.32                                     Doji (十字星), Doji (十字星)   107.81    100.42 261.35 3.53          268.41                       70                  18294
+2026-01-12           IWM 罗素2000指数ETF Index ETF      28423355          Strong          Short   37.6% XGB:0.60|LGB:0.45|LR:0.49|N:316|Base:0.32                                                 Doji (十字星)   114.36    103.57 261.50 3.61          268.72                       69                  18043
+2026-01-09           IWM 罗素2000指数ETF Index ETF      36301546    Strong + Div          Short   36.5% XGB:0.42|LGB:0.53|LR:0.48|N:315|Base:0.32                                                 Doji (十字星)   111.20     92.81 260.23 3.62          267.47                       69                  17955
+2026-01-07           IWM 罗素2000指数ETF Index ETF      33052026          Strong          Short   32.4% XGB:0.11|LGB:0.05|LR:0.49|N:313|Base:0.32                                                 Doji (十字星)   104.25     88.75 255.48 3.56          262.60                       70                  17883
+2025-12-12           IWM 罗素2000指数ETF Index ETF      57657743          Strong          Short   26.7% XGB:0.04|LGB:0.06|LR:0.28|N:297|Base:0.33                                   Bearish Engulfing (看跌吞没)    75.70     90.75 253.85 4.28          262.41                       58                  14723
+2025-12-09           IWM 罗素2000指数ETF Index ETF      30170111          Strong          Short   31.4% XGB:0.06|LGB:0.05|LR:0.40|N:294|Base:0.33                         Doji (十字星), Doji (十字星), Doji (十字星)    86.50     97.25 251.39 4.15          259.69                       60                  15083
+2025-12-08           IWM 罗素2000指数ETF Index ETF      29100029          Strong          Short   33.5% XGB:0.10|LGB:0.10|LR:0.49|N:293|Base:0.33                                     Doji (十字星), Doji (十字星)    94.11     96.10 250.87 4.25          259.37                       58                  14550
+2025-12-05           IWM 罗素2000指数ETF Index ETF      36956621          Strong          Short   35.9% XGB:0.23|LGB:0.23|LR:0.55|N:292|Base:0.34                                                 Doji (十字星)   101.72     81.87 250.77 4.38          259.53                       57                  14293
+2025-10-16           IWM 罗素2000指数ETF Index ETF      52740394          Strong          Short     N/A                                       N/A                                                 Doji (十字星)    63.61     68.27 245.06 4.66          254.38                       53                  12988
+2025-10-15           IWM 罗素2000指数ETF Index ETF      45369046    Strong + Div          Short     N/A                                       N/A                                                 Doji (十字星)    84.65     82.36 250.33 4.46          259.25                       56                  14018
+2025-10-08           IWM 罗素2000指数ETF Index ETF      25824957          Strong          Short     N/A                                       N/A                         Doji (十字星), Doji (十字星), Doji (十字星)    83.13     94.67 246.72 3.34          253.40                       74                  18257
+2025-10-06           IWM 罗素2000指数ETF Index ETF      31507374          Strong          Short     N/A                                       N/A                                     Doji (十字星), Doji (十字星)    88.72     94.91 246.81 3.27          253.35                       76                  18757
+2025-09-23           IWM 罗素2000指数ETF Index ETF      41854513          Strong          Short     N/A                                       N/A                                                 Doji (十字星)    76.49     94.18 243.84 3.62          251.08                       69                  16824
+2025-09-05           IWM 罗素2000指数ETF Index ETF      47542498    Strong + Div          Short     N/A                                       N/A                                                 Doji (十字星)    81.76     97.14 237.77 3.43          244.63                       72                  17119
+2025-09-04           IWM 罗素2000指数ETF Index ETF      30323833    Strong + Div          Short     N/A                                       N/A                                     Doji (十字星), Doji (十字星)    90.27    101.22 236.59 3.33          243.25                       75                  17744
+[2026-02-21 10:53:31] Done. Log: logs/run_20260221_104606.log

@@ -1,0 +1,17 @@
+﻿Ticker,Name_EN,Name_CN,Sector,Type,Avg_Volume
+SPY,SPDR S&P 500 ETF Trust,标普500指数ETF,Index ETF,Index ETF,0
+SOXL,Direxion Daily Semiconductor Bull 3X Shares,半导体3倍做多ETF,Leveraged ETF,Index ETF,0
+QQQ,Invesco QQQ Trust,纳斯达克100指数ETF,Index ETF,Index ETF,0
+IWM,iShares Russell 2000 ETF,罗素2000指数ETF,Index ETF,Index ETF,0
+NVDA,NVIDIA Corporation,英伟达,Semiconductors,Stock,0
+AMZN,Amazon.com Inc.,亚马逊,Internet Retail,Stock,0
+PLTR,Palantir Technologies,帕兰提尔,Software - Infrastructure,Stock,0
+TSLA,Tesla Inc.,特斯拉,Auto Manufacturers,Stock,0
+AAPL,Apple Inc.,苹果,Consumer Electronics,Stock,0
+HOOD,Robinhood Markets,罗宾汉,Software - Infrastructure,Stock,0
+GOOGL,Alphabet Inc.,谷歌,Internet Content & Information,Stock,0
+MSFT,Microsoft Corporation,微软,Software - Infrastructure,Stock,0
+AMD,Advanced Micro Devices,超威半导体,Semiconductors,Stock,0
+MU,Micron Technology,美光科技,Semiconductors,Stock,0
+COIN,Coinbase Global,Coinbase,Software - Application,Stock,0
+META,Meta Platforms Inc.,元宇宙(Facebook),Internet Content & Information,Stock,0

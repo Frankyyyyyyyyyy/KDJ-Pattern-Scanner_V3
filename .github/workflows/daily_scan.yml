@@ -1,0 +1,87 @@
+name: Daily KDJ Scan 每日信号扫描
+
+on:
+  # 每天美东时间 17:00 (UTC 22:00) 自动运行 — 美股收盘后1小时
+  schedule:
+    - cron: '0 22 * * 1-5'   # Mon-Fri, UTC 22:00 = ET 17:00
+
+  # 也可手动触发（方便测试）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # 1. Checkout（拉取完整历史，包含 archive 目录）
+      - name: Checkout 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Setup Python
+      - name: Setup Python 配置Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      # 3. Install dependencies
+      - name: Install dependencies 安装依赖
+        run: |
+          pip install -r requirements.txt
+
+      # 4. Run scanner（FORCE_RUN 跳过交易日检查）
+      - name: Run KDJ Scanner 运行信号扫描
+        env:
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+          FORCE_RUN: '1'
+          PYTHONUNBUFFERED: '1'
+        run: |
+          python run_strategy.py
+
+      # 5. Rebuild dashboard（合并当前+历史CSV，嵌入HTML）
+      - name: Rebuild Dashboard 重建仪表盘
+        run: |
+          python build_dashboard.py
+
+      # 6. Commit CSV + dashboard（信号文件 + 归档 + 仪表盘）
+      - name: Commit results 提交结果
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add signals_*.csv archive/ dashboard.html
+          git diff --cached --quiet || git commit -m "📊 Daily scan $(date -u +%Y-%m-%d)"
+          git push
+
+  # 部署到 GitHub Pages
+  deploy:
+    needs: scan
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout 检出最新代码
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Pages 配置Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact 上传产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages 部署到Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
