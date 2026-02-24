@@ -56,7 +56,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add signals_*.csv archive/ dashboard.html
+          git add signals_*.csv archive/ dashboard.html index.html
           git diff --cached --quiet || git commit -m "📊 Daily scan $(date -u +%Y-%m-%d)"
           git push
 

@@ -107,6 +107,12 @@ def main():
 
     if csv_text:
         embed_csv_into_html(csv_text)
+        # 复制一份 index.html 供 GitHub Pages 使用
+        import shutil
+        src = os.path.join(BASE_DIR, "dashboard.html")
+        dst = os.path.join(BASE_DIR, "index.html")
+        shutil.copy2(src, dst)
+        print(f"  index.html copied for GitHub Pages")
         print("\n✓ Done!")
     else:
         print("\n⚠ No data to embed")
