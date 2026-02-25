@@ -7,6 +7,12 @@ on:
 
   # 也可手动触发（方便测试）
   workflow_dispatch:
+    inputs:
+      force_run:
+        description: '强制运行 (忽略休市检查)'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -37,11 +43,13 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      # 4. Run scanner（FORCE_RUN 跳过交易日检查）
+      # 4. Run scanner
+      # 定时触发时：默认不强制 (FORCE_RUN='0')，由脚本判断是否交易日
+      # 手动触发时：根据输入决定
       - name: Run KDJ Scanner 运行信号扫描
         env:
           POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
-          FORCE_RUN: '1'
+          FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.force_run || '0' }}
           PYTHONUNBUFFERED: '1'
         run: |
           python run_strategy.py
@@ -57,7 +65,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add signals_*.csv archive/ dashboard.html index.html
+          # 如果没有变化则不提交
           git diff --cached --quiet || git commit -m "📊 Daily scan $(date -u +%Y-%m-%d)"
+          # 拉取最新代码避免冲突
           git pull --rebase origin main
           git push
 
