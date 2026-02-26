@@ -427,8 +427,8 @@ def run_strategy():
         df_res['Date (日期)'] = pd.to_datetime(df_res['Date (日期)'])
         
         df_res = df_res.sort_values(
-            by=['Direction (方向)', 'Type (类型)', 'Ticker (股票代码)', 'Date (日期)'],
-            ascending=[False, True, True, False]
+            by=['Date (日期)', 'Direction (方向)', 'Type (类型)', 'Ticker (股票代码)'],
+            ascending=[False, False, True, True]
         )
         
         # Updated columns list to include new V2 fields

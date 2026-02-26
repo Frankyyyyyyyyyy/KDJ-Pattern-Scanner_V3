@@ -169,8 +169,8 @@ def manage_csv_archive(df_new):
 
     # 排序并保存
     df_combined = df_combined.sort_values(
-        by=['Direction (方向)', 'Type (类型)', 'Ticker (股票代码)', 'Date (日期)'],
-        ascending=[False, True, True, False]
+        by=['Date (日期)', 'Direction (方向)', 'Type (类型)', 'Ticker (股票代码)'],
+        ascending=[False, False, True, True]
     )
     df_combined.to_csv(current_csv, index=False, encoding='utf-8-sig')
     logger.info(f"当前季度 CSV 已更新: {current_csv} ({len(df_combined)} 条信号)")
