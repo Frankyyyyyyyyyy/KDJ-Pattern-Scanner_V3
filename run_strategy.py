@@ -281,149 +281,146 @@ def run_strategy():
             logger.info("今天美股休市，跳过扫描任务。")
             return
 
-        # ... (rest of the code)
+        # 0. IP Geolocation & Regional Config (Removed for V2 Pure Polygon Mode)
+        # country_code, country_name, ip_addr, yahoo_domain = detect_ip_country()
+        # logger.info(f"当前网络环境: {country_name} ({country_code}), IP: {ip_addr}")
+        # logger.info(f"使用 Yahoo Finance 区域: {yahoo_domain}")
+        # yf_session = configure_yf_session(yahoo_domain)
+        
+        cfg_run = STRATEGY_CONFIG.copy()
 
+        # 1. Update Metadata
+        df_stocks = update_stock_metadata()
+        ticker_map = dict(zip(df_stocks['Ticker'], df_stocks['Name_CN']))
+        ticker_type_map = dict(zip(df_stocks['Ticker'], df_stocks['Type']))
 
-    # 0. IP Geolocation & Regional Config (Removed for V2 Pure Polygon Mode)
-    # country_code, country_name, ip_addr, yahoo_domain = detect_ip_country()
-    # logger.info(f"当前网络环境: {country_name} ({country_code}), IP: {ip_addr}")
-    # logger.info(f"使用 Yahoo Finance 区域: {yahoo_domain}")
-    # yf_session = configure_yf_session(yahoo_domain)
-    
-    cfg_run = STRATEGY_CONFIG.copy()
-
-    # 1. Update Metadata
-    df_stocks = update_stock_metadata()
-    ticker_map = dict(zip(df_stocks['Ticker'], df_stocks['Name_CN']))
-    ticker_type_map = dict(zip(df_stocks['Ticker'], df_stocks['Type']))
-
-    limit_tickers_raw = os.getenv("LIMIT_TICKERS", "").strip()
-    if limit_tickers_raw:
-        limit_tickers = [t.strip().upper() for t in limit_tickers_raw.split(",") if t.strip()]
-        tickers_to_scan = [t for t in df_stocks['Ticker'].tolist() if t.upper() in set(limit_tickers)]
-        logger.info(f"LIMIT_TICKERS enabled: {tickers_to_scan}")
-        os.environ['EMAIL_UNIVERSE'] = ','.join(tickers_to_scan)
-    else:
-        tickers_to_scan = df_stocks['Ticker'].tolist()
-        os.environ['EMAIL_UNIVERSE'] = 'ALL'
-
-    # 2. Prepare Date Range
-    end_date_dt = pd.Timestamp(get_now_et().replace(tzinfo=None))
-    start_date_dt = end_date_dt - pd.DateOffset(years=1, months=6)
-    start_date_str = start_date_dt.strftime("%Y-%m-%d")
-    
-    # 3. 多数据源获取 (Polygon优先, Yahoo备选, 本地缓存)
-    all_tickers = list(dict.fromkeys(tickers_to_scan + [INDEX_TICKER]))
-
-    # Pass None for yf_session as we don't use it anymore for stocks (Polygon only)
-    # 显式传递 end_date_str 确保获取到今天的数据
-    end_date_str = end_date_dt.strftime("%Y-%m-%d")
-    ticker_data = fetch_all_data(all_tickers, start_date_str, yf_session=None, end_date=end_date_str)
-
-    if not ticker_data:
-        logger.critical("无法获取任何数据。请检查网络或 API Key。")
-        return
-    
-    # DEBUG: Check AAPL data specifically
-    if 'AAPL' in tickers_to_scan:
-        if 'AAPL' in ticker_data:
-            aapl_df = ticker_data['AAPL']
-            logger.info(f"AAPL Data Loaded: {len(aapl_df)} rows. Last Date: {aapl_df.index[-1]}")
+        limit_tickers_raw = os.getenv("LIMIT_TICKERS", "").strip()
+        if limit_tickers_raw:
+            limit_tickers = [t.strip().upper() for t in limit_tickers_raw.split(",") if t.strip()]
+            tickers_to_scan = [t for t in df_stocks['Ticker'].tolist() if t.upper() in set(limit_tickers)]
+            logger.info(f"LIMIT_TICKERS enabled: {tickers_to_scan}")
+            os.environ['EMAIL_UNIVERSE'] = ','.join(tickers_to_scan)
         else:
-            logger.warning("AAPL Data NOT FOUND in fetch_all_data result!")
+            tickers_to_scan = df_stocks['Ticker'].tolist()
+            os.environ['EMAIL_UNIVERSE'] = 'ALL'
 
-    # 提取单只 ticker 数据的辅助函数
-    def extract_ticker_data(ticker):
-        return ticker_data.get(ticker, pd.DataFrame())
+        # 2. Prepare Date Range
+        end_date_dt = pd.Timestamp(get_now_et().replace(tzinfo=None))
+        start_date_dt = end_date_dt - pd.DateOffset(years=1, months=6)
+        start_date_str = start_date_dt.strftime("%Y-%m-%d")
+        
+        # 3. 多数据源获取 (Polygon优先, Yahoo备选, 本地缓存)
+        all_tickers = list(dict.fromkeys(tickers_to_scan + [INDEX_TICKER]))
 
-    # 4. Process Index Data (QQQ)
-    logger.info(f"Processing Index {INDEX_TICKER}...")
-    try:
-        df_index = extract_ticker_data(INDEX_TICKER)
-        if df_index.empty:
-            logger.critical(f"No data for index {INDEX_TICKER}. Strategy cannot run.")
+        # Pass None for yf_session as we don't use it anymore for stocks (Polygon only)
+        # 显式传递 end_date_str 确保获取到今天的数据
+        end_date_str = end_date_dt.strftime("%Y-%m-%d")
+        ticker_data = fetch_all_data(all_tickers, start_date_str, yf_session=None, end_date=end_date_str)
+
+        if not ticker_data:
+            logger.critical("无法获取任何数据。请检查网络或 API Key。")
+            return
+        
+        # DEBUG: Check AAPL data specifically
+        if 'AAPL' in tickers_to_scan:
+            if 'AAPL' in ticker_data:
+                aapl_df = ticker_data['AAPL']
+                logger.info(f"AAPL Data Loaded: {len(aapl_df)} rows. Last Date: {aapl_df.index[-1]}")
+            else:
+                logger.warning("AAPL Data NOT FOUND in fetch_all_data result!")
+
+        # 提取单只 ticker 数据的辅助函数
+        def extract_ticker_data(ticker):
+            return ticker_data.get(ticker, pd.DataFrame())
+
+        # 4. Process Index Data (QQQ)
+        logger.info(f"Processing Index {INDEX_TICKER}...")
+        try:
+            df_index = extract_ticker_data(INDEX_TICKER)
+            if df_index.empty:
+                logger.critical(f"No data for index {INDEX_TICKER}. Strategy cannot run.")
+                return
+
+            # 数据质量校验
+            df_index, _ = validate_ohlc(df_index, INDEX_TICKER)
+            df_index = calculate_kdj(df_index)
+            df_index = calculate_atr(df_index, period=cfg_run['atr_period'])
+            df_index['Bearish_Patterns'], df_index['Bullish_Patterns'] = identify_patterns(df_index)
+        except Exception as e:
+            logger.critical(f"Failed to process index data. Strategy cannot run. {e}")
             return
 
-        # 数据质量校验
-        df_index, _ = validate_ohlc(df_index, INDEX_TICKER)
-        df_index = calculate_kdj(df_index)
-        df_index = calculate_atr(df_index, period=cfg_run['atr_period'])
-        df_index['Bearish_Patterns'], df_index['Bullish_Patterns'] = identify_patterns(df_index)
-    except Exception as e:
-        logger.critical(f"Failed to process index data. Strategy cannot run. {e}")
-        return
+        results = []
 
-    results = []
+        # Scan Range: Last 1 Year
+        scan_start_dt = end_date_dt - pd.DateOffset(years=1)
+        if df_index.index.tz is not None:
+            scan_start_dt = scan_start_dt.tz_localize(df_index.index.tz)
 
-    # Scan Range: Last 1 Year
-    scan_start_dt = end_date_dt - pd.DateOffset(years=1)
-    if df_index.index.tz is not None:
-        scan_start_dt = scan_start_dt.tz_localize(df_index.index.tz)
-
-    # 5. Parallel Processing Loop
-    
-    # Detect Hardware Platform
-    system_platform = platform.system()
-    machine_arch = platform.machine()
-    cpu_count = multiprocessing.cpu_count()
-    
-    # Determine Parallel Strategy
-    # Mac M1/M2/M3 (ARM64) works best with 'fork' (default on Unix) or 'spawn'.
-    # For dataframes, 'fork' is faster but can be unstable with some libraries.
-    # We will use ProcessPoolExecutor which defaults to a safe method.
-    
-    max_workers = max(1, cpu_count - 1) # Leave 1 core for OS
-    max_workers_env = os.getenv("MAX_WORKERS", "").strip()
-    if max_workers_env.isdigit():
-        max_workers = max(1, int(max_workers_env))
-    if system_platform == 'Darwin' and 'arm64' in machine_arch:
-        logger.info(f"🚀 Detected Apple Silicon ({machine_arch}). Optimizing for {cpu_count} cores.")
-        # M3 allows high parallelism
-    else:
-        logger.info(f"💻 Detected {system_platform} ({machine_arch}). Using {max_workers} workers.")
-
-    max_workers = min(max_workers, max(1, len(tickers_to_scan)))
-    logger.info(f"Starting parallel scanning with {max_workers} workers...")
-    
-    # Prepare arguments for workers
-    futures = []
-    
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        for ticker in tickers_to_scan:
-            df = extract_ticker_data(ticker)
-            
-            if df.empty:
-                continue
-                
-            # Validate here to save worker overhead
-            df, removed = validate_ohlc(df, ticker)
-            if df.empty:
-                continue
-                
-            # Submit task
-            futures.append(
-                executor.submit(
-                    process_ticker, 
-                    ticker, ticker_map, ticker_type_map, 
-                    df, df_index, scan_start_dt, end_date_dt, cfg_run
-                )
-            )
-            
-        # Collect results
-        total_tasks = len(futures)
-        completed_tasks = 0
+        # 5. Parallel Processing Loop
         
-        for future in as_completed(futures):
-            try:
-                res = future.result()
-                if res:
-                    results.extend(res)
-            except Exception as e:
-                logger.error(f"Worker exception: {e}")
+        # Detect Hardware Platform
+        system_platform = platform.system()
+        machine_arch = platform.machine()
+        cpu_count = multiprocessing.cpu_count()
+        
+        # Determine Parallel Strategy
+        # Mac M1/M2/M3 (ARM64) works best with 'fork' (default on Unix) or 'spawn'.
+        # For dataframes, 'fork' is faster but can be unstable with some libraries.
+        # We will use ProcessPoolExecutor which defaults to a safe method.
+        
+        max_workers = max(1, cpu_count - 1) # Leave 1 core for OS
+        max_workers_env = os.getenv("MAX_WORKERS", "").strip()
+        if max_workers_env.isdigit():
+            max_workers = max(1, int(max_workers_env))
+        if system_platform == 'Darwin' and 'arm64' in machine_arch:
+            logger.info(f"🚀 Detected Apple Silicon ({machine_arch}). Optimizing for {cpu_count} cores.")
+            # M3 allows high parallelism
+        else:
+            logger.info(f"💻 Detected {system_platform} ({machine_arch}). Using {max_workers} workers.")
+
+        max_workers = min(max_workers, max(1, len(tickers_to_scan)))
+        logger.info(f"Starting parallel scanning with {max_workers} workers...")
+        
+        # Prepare arguments for workers
+        futures = []
+        
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            for ticker in tickers_to_scan:
+                df = extract_ticker_data(ticker)
+                
+                if df.empty:
+                    continue
+                    
+                # Validate here to save worker overhead
+                df, removed = validate_ohlc(df, ticker)
+                if df.empty:
+                    continue
+                    
+                # Submit task
+                futures.append(
+                    executor.submit(
+                        process_ticker, 
+                        ticker, ticker_map, ticker_type_map, 
+                        df, df_index, scan_start_dt, end_date_dt, cfg_run
+                    )
+                )
+                
+            # Collect results
+            total_tasks = len(futures)
+            completed_tasks = 0
             
-            completed_tasks += 1
-            if completed_tasks % 5 == 0:
-                logger.info(f"Progress: {completed_tasks}/{total_tasks} tickers scanned.")
+            for future in as_completed(futures):
+                try:
+                    res = future.result()
+                    if res:
+                        results.extend(res)
+                except Exception as e:
+                    logger.error(f"Worker exception: {e}")
+                
+                completed_tasks += 1
+                if completed_tasks % 5 == 0:
+                    logger.info(f"Progress: {completed_tasks}/{total_tasks} tickers scanned.")
 
         # 5. Output with CSV archival
         if results:
