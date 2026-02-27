@@ -1,9 +1,9 @@
 name: Daily KDJ Scan 每日信号扫描
 
 on:
-  # 每天美东时间 17:00 (UTC 22:00) 自动运行 — 美股收盘后1小时
+  # 每天美东时间 18:00 (UTC 23:00) 自动运行 — 推迟1小时以确保数据就绪
   schedule:
-    - cron: '0 22 * * 1-5'   # Mon-Fri, UTC 22:00 = ET 17:00
+    - cron: '0 23 * * 1-5'   # Mon-Fri, UTC 23:00 = ET 18:00
 
   # 也可手动触发（方便测试）
   workflow_dispatch:

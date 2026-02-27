@@ -312,7 +312,9 @@ def run_strategy():
     all_tickers = list(dict.fromkeys(tickers_to_scan + [INDEX_TICKER]))
 
     # Pass None for yf_session as we don't use it anymore for stocks (Polygon only)
-    ticker_data = fetch_all_data(all_tickers, start_date_str, yf_session=None)
+    # 显式传递 end_date_str 确保获取到今天的数据
+    end_date_str = end_date_dt.strftime("%Y-%m-%d")
+    ticker_data = fetch_all_data(all_tickers, start_date_str, yf_session=None, end_date=end_date_str)
 
     if not ticker_data:
         logger.critical("无法获取任何数据。请检查网络或 API Key。")

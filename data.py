@@ -200,7 +200,7 @@ def fetch_yahoo_batch(tickers, start_date, yf_session=None):
     return result
 
 
-def fetch_all_data(tickers, start_date, yf_session=None):
+def fetch_all_data(tickers, start_date, yf_session=None, end_date=None):
     """
     多数据源获取，按优先级尝试:
     1. Polygon.io（国内直接可用，无需 VPN）
@@ -259,7 +259,7 @@ def fetch_all_data(tickers, start_date, yf_session=None):
 
         if source == 'polygon':
             logger.info(f"数据源 [Polygon.io]: 获取 {len(missing)} 只股票...")
-            polygon_data = fetch_polygon_batch(missing, start_date)
+            polygon_data = fetch_polygon_batch(missing, start_date, end_date=end_date)
             all_result.update(polygon_data)
             logger.info(f"  Polygon 获取成功: {len(polygon_data)}/{len(missing)}")
 
