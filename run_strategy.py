@@ -275,10 +275,14 @@ def process_ticker(ticker, ticker_map, ticker_type_map, df, df_index, scan_start
     return local_results
 
 def run_strategy():
-    # 0. Market Calendar Check
-    if not is_trading_day():
-        logger.info("今天美股休市，跳过扫描任务。")
-        return
+    try:
+        # 0. Market Calendar Check
+        if not is_trading_day():
+            logger.info("今天美股休市，跳过扫描任务。")
+            return
+
+        # ... (rest of the code)
+
 
     # 0. IP Geolocation & Regional Config (Removed for V2 Pure Polygon Mode)
     # country_code, country_name, ip_addr, yahoo_domain = detect_ip_country()
@@ -421,45 +425,50 @@ def run_strategy():
             if completed_tasks % 5 == 0:
                 logger.info(f"Progress: {completed_tasks}/{total_tasks} tickers scanned.")
 
-    # 5. Output with CSV archival
-    if results:
-        df_res = pd.DataFrame(results)
-        
-        # Ensure Date column is proper datetime
-        df_res['Date (日期)'] = pd.to_datetime(df_res['Date (日期)'])
-        
-        df_res = df_res.sort_values(
-            by=['Date (日期)', 'Direction (方向)', 'Type (类型)', 'Ticker (股票代码)'],
-            ascending=[False, False, True, True]
-        )
-        
-        # Updated columns list to include new V2 fields
-        cols = ['Date (日期)', 'Ticker (股票代码)', 'Name (名称)', 'Type (类型)', 'Volume (成交量)',
-                'Signal Strength', 'Direction (方向)', 'ML_Prob', 'ML_Detail',
-                'Pattern (形态)', 'Daily_J', 'Weekly_J', 'Price', 'ATR',
-                'Stop_Loss (止损)', 'Suggested_Shares (建议股数)', 'Position_Size (建议仓位$)']
-        
-        # Ensure all columns exist
-        for col in cols:
-            if col not in df_res.columns:
-                df_res[col] = None
+        # 5. Output with CSV archival
+        if results:
+            df_res = pd.DataFrame(results)
+            
+            # Ensure Date column is proper datetime
+            df_res['Date (日期)'] = pd.to_datetime(df_res['Date (日期)'])
+            
+            df_res = df_res.sort_values(
+                by=['Date (日期)', 'Direction (方向)', 'Type (类型)', 'Ticker (股票代码)'],
+                ascending=[False, False, True, True]
+            )
+            
+            # Updated columns list to include new V2 fields
+            cols = ['Date (日期)', 'Ticker (股票代码)', 'Name (名称)', 'Type (类型)', 'Volume (成交量)',
+                    'Signal Strength', 'Direction (方向)', 'ML_Prob', 'ML_Detail',
+                    'Pattern (形态)', 'Daily_J', 'Weekly_J', 'Price', 'ATR',
+                    'Stop_Loss (止损)', 'Suggested_Shares (建议股数)', 'Position_Size (建议仓位$)']
+            
+            # Ensure all columns exist
+            for col in cols:
+                if col not in df_res.columns:
+                    df_res[col] = None
 
-        df_res = df_res[cols]
+            df_res = df_res[cols]
 
-        logger.info("=" * 60)
-        logger.info("UNIFIED TRADING SIGNALS (V2 PARALLEL)")
-        logger.info("=" * 60)
-        print(df_res.head(20).to_string(index=False))
+            logger.info("=" * 60)
+            logger.info("UNIFIED TRADING SIGNALS (V2 PARALLEL)")
+            logger.info("=" * 60)
+            print(df_res.head(20).to_string(index=False))
 
-        # --- CSV 归档逻辑 ---
-        csv_file = manage_csv_archive(df_res)
+            # --- CSV 归档逻辑 ---
+            csv_file = manage_csv_archive(df_res)
 
-        # 邮件功能已禁用，信号通过 Web Dashboard 查看
-        # Email disabled — view signals via Web Dashboard (python server.py)
-        logger.info(f"扫描完成，共 {len(df_res)} 条信号已保存至 {csv_file}")
-        logger.info(f"Scan complete. {len(df_res)} signals saved to {csv_file}")
-    else:
-        logger.info("No signals found.")
+            # 邮件功能已禁用，信号通过 Web Dashboard 查看
+            # Email disabled — view signals via Web Dashboard (python server.py)
+            logger.info(f"扫描完成，共 {len(df_res)} 条信号已保存至 {csv_file}")
+            logger.info(f"Scan complete. {len(df_res)} signals saved to {csv_file}")
+        else:
+            logger.info("No signals found.")
+
+    except Exception as e:
+        logger.critical(f"Strategy execution failed: {e}", exc_info=True)
+        # Re-raise so that GitHub Action knows it failed, but we get logs
+        raise e
 
 if __name__ == "__main__":
     # On macOS, 'spawn' is the default start method for Python 3.8+.
