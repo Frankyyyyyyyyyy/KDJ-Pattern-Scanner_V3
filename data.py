@@ -249,6 +249,8 @@ def fetch_all_data(tickers, start_date, yf_session=None, end_date=None):
                 yahoo_data = fetch_yahoo_batch(missing_after, start_date, yf_session)
                 all_result.update(yahoo_data)
                 logger.info(f"  Yahoo 获取成功: {len(yahoo_data)}/{len(missing_after)}")
+            else:
+                logger.info("数据源 [Yahoo Finance]: 无需回退（Polygon 数据已就绪）")
 
     # 汇总
     loaded = len(all_result)
