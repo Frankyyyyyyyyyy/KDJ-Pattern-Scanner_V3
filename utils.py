@@ -155,6 +155,14 @@ def manage_csv_archive(df_new):
         df_combined = df_new.copy()
         df_combined['Date (日期)'] = pd.to_datetime(df_combined['Date (日期)']).dt.strftime('%Y-%m-%d')
 
+    if 'Ticker (股票代码)' in df_combined.columns and 'Date (日期)' in df_combined.columns:
+        try:
+            non_placeholder_dates = set(df_combined.loc[df_combined['Ticker (股票代码)'] != 'NO_SIGNAL', 'Date (日期)'].dropna().astype(str))
+            placeholder_mask = (df_combined['Ticker (股票代码)'] == 'NO_SIGNAL') & (df_combined['Date (日期)'].astype(str).isin(non_placeholder_dates))
+            df_combined = df_combined.loc[~placeholder_mask].copy()
+        except Exception:
+            pass
+
     for col in target_cols:
         if col not in df_combined.columns:
             df_combined[col] = None

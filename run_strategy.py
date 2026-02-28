@@ -427,6 +427,32 @@ def run_strategy():
         # 5. Output with CSV archival
         target_end_date = pd.Timestamp(target_end_date_str).date()
 
+        cols = ['Date (日期)', 'Ticker (股票代码)', 'Name (名称)', 'Type (类型)', 'Volume (成交量)',
+                'Signal Strength', 'Direction (方向)', 'ML_Prob', 'ML_Detail',
+                'Pattern (形态)', 'Daily_J', 'Weekly_J', 'Price', 'ATR',
+                'Stop_Loss (止损)', 'Suggested_Shares (建议股数)', 'Position_Size (建议仓位$)']
+
+        def build_no_signal_row(date_str: str):
+            return {
+                'Date (日期)': date_str,
+                'Ticker (股票代码)': 'NO_SIGNAL',
+                'Name (名称)': '无信号',
+                'Type (类型)': 'Info',
+                'Volume (成交量)': 0,
+                'Signal Strength': 'No Signal',
+                'Direction (方向)': 'N/A',
+                'ML_Prob': 'N/A',
+                'ML_Detail': 'N/A',
+                'Pattern (形态)': '无信号',
+                'Daily_J': None,
+                'Weekly_J': None,
+                'Price': None,
+                'ATR': None,
+                'Stop_Loss (止损)': None,
+                'Suggested_Shares (建议股数)': None,
+                'Position_Size (建议仓位$)': None,
+            }
+
         if results:
             df_res = pd.DataFrame(results)
             
@@ -437,12 +463,6 @@ def run_strategy():
                 by=['Date (日期)', 'Direction (方向)', 'Type (类型)', 'Ticker (股票代码)'],
                 ascending=[False, False, True, True]
             )
-            
-            # Updated columns list to include new V2 fields
-            cols = ['Date (日期)', 'Ticker (股票代码)', 'Name (名称)', 'Type (类型)', 'Volume (成交量)',
-                    'Signal Strength', 'Direction (方向)', 'ML_Prob', 'ML_Detail',
-                    'Pattern (形态)', 'Daily_J', 'Weekly_J', 'Price', 'ATR',
-                    'Stop_Loss (止损)', 'Suggested_Shares (建议股数)', 'Position_Size (建议仓位$)']
             
             # Ensure all columns exist
             for col in cols:
@@ -456,12 +476,22 @@ def run_strategy():
             logger.info("=" * 60)
             print(df_res.head(20).to_string(index=False))
 
+            count_target = 0
             try:
                 df_res_dates = pd.to_datetime(df_res['Date (日期)'], errors='coerce')
                 count_target = int((df_res_dates.dt.date == target_end_date).sum())
                 logger.info(f"目标交易日 {target_end_date_str} 信号数: {count_target}")
             except Exception:
                 pass
+
+            if count_target == 0:
+                df_res = pd.concat([df_res, pd.DataFrame([build_no_signal_row(target_end_date_str)])], ignore_index=True)
+                df_res['Date (日期)'] = pd.to_datetime(df_res['Date (日期)'], errors='coerce')
+                df_res = df_res.sort_values(
+                    by=['Date (日期)', 'Direction (方向)', 'Type (类型)', 'Ticker (股票代码)'],
+                    ascending=[False, False, True, True]
+                )
+                df_res = df_res[cols]
 
             # --- CSV 归档逻辑 ---
             csv_file = manage_csv_archive(df_res)
@@ -473,6 +503,14 @@ def run_strategy():
         else:
             logger.info(f"目标交易日 {target_end_date_str} 信号数: 0")
             logger.info("No signals found.")
+
+            df_res = pd.DataFrame([build_no_signal_row(target_end_date_str)])
+            for col in cols:
+                if col not in df_res.columns:
+                    df_res[col] = None
+            df_res = df_res[cols]
+            csv_file = manage_csv_archive(df_res)
+            logger.info(f"当前季度 CSV 已写入无信号占位: {csv_file}")
 
     except Exception as e:
         logger.critical(f"Strategy execution failed: {e}", exc_info=True)
