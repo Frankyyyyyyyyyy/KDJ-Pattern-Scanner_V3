@@ -440,7 +440,7 @@ def run_strategy():
                 'Type (类型)': 'Info',
                 'Volume (成交量)': 0,
                 'Signal Strength': 'No Signal',
-                'Direction (方向)': 'N/A',
+                'Direction (方向)': '无信号',
                 'ML_Prob': 'N/A',
                 'ML_Detail': 'N/A',
                 'Pattern (形态)': '无信号',
