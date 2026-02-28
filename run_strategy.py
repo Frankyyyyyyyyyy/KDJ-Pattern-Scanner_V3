@@ -5,7 +5,7 @@ import multiprocessing
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import pandas as pd
 from config import STRATEGY_CONFIG, INDEX_TICKER
-from utils import is_trading_day, manage_csv_archive, get_now_et
+from utils import is_trading_day, manage_csv_archive, get_now_et, get_last_completed_nyse_session_date
 from data import update_stock_metadata, fetch_all_data, validate_ohlc
 from indicators import calculate_kdj, calculate_atr, get_weekly_kdj_snapshot
 from patterns import identify_patterns
