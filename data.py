@@ -73,6 +73,15 @@ def fetch_polygon_bars(ticker, start_date, end_date=None, timespan='day'):
     if end_date is None:
         end_date = get_last_completed_nyse_session_date()
 
+    expected_end_ts = None
+    try:
+        expected_end_ts = pd.Timestamp(end_date).normalize()
+        last_completed_ts = pd.Timestamp(get_last_completed_nyse_session_date()).normalize()
+        if expected_end_ts > last_completed_ts:
+            expected_end_ts = last_completed_ts
+    except Exception:
+        expected_end_ts = None
+
     if not POLYGON_API_KEY:
         logger.warning("POLYGON_API_KEY 未配置，无法使用 Polygon 数据源")
         return pd.DataFrame()
@@ -124,6 +133,17 @@ def fetch_polygon_bars(ticker, start_date, end_date=None, timespan='day'):
                                 df = pd.concat([df, prev_df]).sort_index()
             except Exception:
                 pass
+
+            if expected_end_ts is not None and not df.empty:
+                try:
+                    last_ts = pd.Timestamp(df.index.max()).normalize()
+                    if last_ts < expected_end_ts:
+                        logger.warning(
+                            f"Polygon 数据滞后: {ticker} last={last_ts.date()} < expected={expected_end_ts.date()}，将回退到 Yahoo"
+                        )
+                        return pd.DataFrame()
+                except Exception:
+                    pass
 
         return df
 
