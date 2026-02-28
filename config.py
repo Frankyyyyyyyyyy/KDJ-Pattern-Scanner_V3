@@ -35,7 +35,7 @@ if not POLYGON_API_KEY:
 if not POLYGON_API_KEY:
     logger.warning("POLYGON_API_KEY not found in environment variables. Polygon data source will be unavailable.")
 
-DATA_SOURCE_PRIORITY = ['polygon']  # 仅使用 Polygon，禁用 Yahoo
+DATA_SOURCE_PRIORITY = ['polygon', 'yahoo']  # Polygon 优先，Yahoo 备选（解决 Polygon 免费版数据延迟问题）
 
 # ==========================================
 # File & Email Configuration

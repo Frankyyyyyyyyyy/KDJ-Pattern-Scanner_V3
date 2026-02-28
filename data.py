@@ -5,7 +5,7 @@ import pandas as pd
 import yfinance as yf
 import os
 from config import POLYGON_API_KEY, DATA_SOURCE_PRIORITY, STOCK_LIST_FILE
-from utils import get_last_completed_nyse_session_date, get_now_et
+from utils import get_last_completed_nyse_session_date
 
 logger = logging.getLogger(__name__)
 
@@ -204,53 +204,12 @@ def fetch_all_data(tickers, start_date, yf_session=None, end_date=None):
     """
     多数据源获取，按优先级尝试:
     1. Polygon.io（国内直接可用，无需 VPN）
-    2. Yahoo Finance（需 VPN）
-    3. 本地缓存（当天有效）
+    2. Yahoo Finance（备选）
 
     Returns:
         dict: {ticker: DataFrame}
     """
-    cache_file = f"_cache_{get_now_et().strftime('%Y%m%d')}.pkl"
-
-    disable_cache = os.getenv('DISABLE_CACHE', '').strip().lower() in {'1', 'true', 'yes'}
-    expected_end_date = get_last_completed_nyse_session_date()
-    expected_end_ts = pd.Timestamp(expected_end_date)
-
     all_result = {}
-
-    # 尝试本地缓存
-    if (not disable_cache) and os.path.exists(cache_file):
-        try:
-            cached = pd.read_pickle(cache_file)
-            if isinstance(cached, dict) and len(cached) > 0:
-                filtered = {}
-                stale = []
-                for k, v in cached.items():
-                    if not isinstance(v, pd.DataFrame) or v.empty:
-                        continue
-                    try:
-                        if v.index.max() >= expected_end_ts:
-                            filtered[k] = v
-                        else:
-                            stale.append(k)
-                    except Exception:
-                        continue
-
-                cached_keys = set(filtered.keys())
-                requested_keys = set(tickers)
-                if stale:
-                    logger.info(f"本地缓存数据较旧，将重新拉取: {stale}")
-
-                if requested_keys.issubset(cached_keys):
-                    logger.info(f"从本地缓存加载数据: {cache_file} ({len(filtered)} tickers)")
-                    return filtered
-
-                all_result.update(filtered)
-                logger.info(
-                    f"从本地缓存加载部分数据: {cache_file} ({len(filtered)} tickers), 缺失 {len(requested_keys - cached_keys)}"
-                )
-        except Exception:
-            pass
 
     for source in DATA_SOURCE_PRIORITY:
         missing = [t for t in tickers if t not in all_result]
@@ -270,14 +229,6 @@ def fetch_all_data(tickers, start_date, yf_session=None, end_date=None):
                 yahoo_data = fetch_yahoo_batch(missing_after, start_date, yf_session)
                 all_result.update(yahoo_data)
                 logger.info(f"  Yahoo 获取成功: {len(yahoo_data)}/{len(missing_after)}")
-
-    # 保存缓存
-    if all_result and (not disable_cache):
-        try:
-            pd.to_pickle(all_result, cache_file)
-            logger.info(f"数据已缓存: {cache_file} ({len(all_result)} tickers)")
-        except Exception:
-            pass
 
     # 汇总
     loaded = len(all_result)
