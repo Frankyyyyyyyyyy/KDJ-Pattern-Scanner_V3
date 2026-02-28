@@ -304,17 +304,18 @@ def run_strategy():
             tickers_to_scan = df_stocks['Ticker'].tolist()
             os.environ['EMAIL_UNIVERSE'] = 'ALL'
 
+        target_end_date_str = get_last_completed_nyse_session_date()
+        logger.info(f"本次扫描目标交易日: {target_end_date_str}")
+
         # 2. Prepare Date Range
-        end_date_dt = pd.Timestamp(get_now_et().replace(tzinfo=None))
+        end_date_dt = pd.Timestamp(target_end_date_str)
         start_date_dt = end_date_dt - pd.DateOffset(years=1, months=6)
         start_date_str = start_date_dt.strftime("%Y-%m-%d")
         
         # 3. 多数据源获取 (Polygon优先, Yahoo备选, 本地缓存)
         all_tickers = list(dict.fromkeys(tickers_to_scan + [INDEX_TICKER]))
 
-        # Pass None for yf_session as we don't use it anymore for stocks (Polygon only)
-        # 显式传递 end_date_str 确保获取到今天的数据
-        end_date_str = end_date_dt.strftime("%Y-%m-%d")
+        end_date_str = target_end_date_str
         ticker_data = fetch_all_data(all_tickers, start_date_str, yf_session=None, end_date=end_date_str)
 
         if not ticker_data:
@@ -423,6 +424,8 @@ def run_strategy():
                     logger.info(f"Progress: {completed_tasks}/{total_tasks} tickers scanned.")
 
         # 5. Output with CSV archival
+        target_end_date = pd.Timestamp(target_end_date_str).date()
+
         if results:
             df_res = pd.DataFrame(results)
             
@@ -452,6 +455,13 @@ def run_strategy():
             logger.info("=" * 60)
             print(df_res.head(20).to_string(index=False))
 
+            try:
+                df_res_dates = pd.to_datetime(df_res['Date (日期)'], errors='coerce')
+                count_target = int((df_res_dates.dt.date == target_end_date).sum())
+                logger.info(f"目标交易日 {target_end_date_str} 信号数: {count_target}")
+            except Exception:
+                pass
+
             # --- CSV 归档逻辑 ---
             csv_file = manage_csv_archive(df_res)
 
@@ -460,6 +470,7 @@ def run_strategy():
             logger.info(f"扫描完成，共 {len(df_res)} 条信号已保存至 {csv_file}")
             logger.info(f"Scan complete. {len(df_res)} signals saved to {csv_file}")
         else:
+            logger.info(f"目标交易日 {target_end_date_str} 信号数: 0")
             logger.info("No signals found.")
 
     except Exception as e:
