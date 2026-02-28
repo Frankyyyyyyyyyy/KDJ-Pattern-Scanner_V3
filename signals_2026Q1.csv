@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-02-27,NO_SIGNAL,无信号,Info,0,No Signal,N/A,N/A,N/A,无信号,,,,,,,
 2026-02-26,SOXL,半导体3倍做多ETF,Index ETF,97787941,Strong,Short,38.7%,XGB:0.52|LGB:0.50|LR:0.51|N:342|Base:0.33,Doji (十字星),62.26,78.93,65.34,5.66,76.66,44,2874
 2026-02-26,MU,美光科技,Stock,35433455,Strong,Short,37.9%,XGB:0.51|LGB:0.54|LR:0.54|N:342|Base:0.32,"Doji (十字星), Doji (十字星)",62.1,76.32,415.56,24.36,464.28,10,4155
 2026-02-25,GOOGL,谷歌,Stock,29963621,Strong,Short,38.8%,XGB:0.68|LGB:0.54|LR:0.47|N:341|Base:0.30,Doji (十字星),81.24,14.97,312.9,8.87,330.64,28,8761
