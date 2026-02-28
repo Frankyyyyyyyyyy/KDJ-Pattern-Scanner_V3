@@ -4,7 +4,7 @@ import requests as req
 import pandas as pd
 import yfinance as yf
 import os
-from config import POLYGON_API_KEY, DATA_SOURCE_PRIORITY, STOCK_LIST_FILE
+from config import POLYGON_API_KEY, DATA_SOURCE_PRIORITY, STOCK_LIST_FILE, PRICE_CACHE_DIR
 from utils import get_last_completed_nyse_session_date
 
 logger = logging.getLogger(__name__)
@@ -260,6 +260,218 @@ def fetch_all_data(tickers, start_date, yf_session=None, end_date=None):
                  (f", 失败: {failed}" if failed else ""))
 
     return all_result
+
+
+def _normalize_ohlcv_df(df):
+    if df is None or df.empty:
+        return pd.DataFrame()
+    df = df.copy()
+    if isinstance(df.columns, pd.MultiIndex):
+        try:
+            df.columns = [c[-1] for c in df.columns]
+        except Exception:
+            pass
+    if not isinstance(df.index, pd.DatetimeIndex):
+        try:
+            df.index = pd.to_datetime(df.index)
+        except Exception:
+            return pd.DataFrame()
+    if df.index.tz is not None:
+        df.index = df.index.tz_convert('US/Eastern').tz_localize(None)
+    df.index = df.index.normalize()
+    df.index.name = 'Date'
+
+    cols = ['Open', 'High', 'Low', 'Close', 'Volume']
+    missing = [c for c in cols if c not in df.columns]
+    if missing:
+        return pd.DataFrame()
+    df = df[cols].dropna(how='all')
+    return df
+
+
+def _price_cache_path(year: int) -> str:
+    return os.path.join(PRICE_CACHE_DIR, f"prices_{year}.csv")
+
+
+def _read_price_cache(year: int) -> pd.DataFrame:
+    path = _price_cache_path(year)
+    if not os.path.exists(path):
+        return pd.DataFrame(columns=['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source'])
+    try:
+        df = pd.read_csv(path)
+    except Exception:
+        return pd.DataFrame(columns=['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source'])
+
+    if df.empty:
+        return pd.DataFrame(columns=['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source'])
+
+    if 'Date' in df.columns:
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    return df
+
+
+def _write_price_cache(year: int, df: pd.DataFrame) -> str:
+    os.makedirs(PRICE_CACHE_DIR, exist_ok=True)
+    path = _price_cache_path(year)
+    df_out = df.copy()
+    if 'Date' in df_out.columns:
+        df_out['Date'] = pd.to_datetime(df_out['Date'], errors='coerce')
+        df_out = df_out.dropna(subset=['Date'])
+        df_out['Date'] = df_out['Date'].dt.strftime('%Y-%m-%d')
+    df_out.to_csv(path, index=False, encoding='utf-8-sig')
+    return path
+
+
+def update_price_cache_year(tickers, start_date, end_date):
+    if end_date is None:
+        end_date = get_last_completed_nyse_session_date()
+
+    end_ts = pd.Timestamp(end_date).normalize()
+    year = int(end_ts.year)
+    year_start = pd.Timestamp(f"{year}-01-01")
+    year_end = pd.Timestamp(f"{year}-12-31")
+
+    start_ts = pd.Timestamp(start_date).normalize()
+    start_ts = max(start_ts, year_start)
+    end_ts = min(end_ts, year_end)
+
+    if start_ts > end_ts:
+        return _price_cache_path(year)
+
+    os.makedirs(PRICE_CACHE_DIR, exist_ok=True)
+    cache_df = _read_price_cache(year)
+    if cache_df.empty:
+        cache_df = pd.DataFrame(columns=['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source'])
+
+    try:
+        if 'Date' in cache_df.columns:
+            cache_df['Date'] = pd.to_datetime(cache_df['Date'], errors='coerce')
+    except Exception:
+        pass
+
+    last_by_ticker = {}
+    try:
+        if not cache_df.empty and 'Ticker' in cache_df.columns and 'Date' in cache_df.columns:
+            tmp = cache_df.dropna(subset=['Date', 'Ticker'])
+            if not tmp.empty:
+                last_by_ticker = tmp.groupby('Ticker')['Date'].max().to_dict()
+    except Exception:
+        last_by_ticker = {}
+
+    polygon_ok = {}
+    yahoo_needed = []
+    yahoo_start_by_ticker = {}
+    for ticker in tickers:
+        last_dt = last_by_ticker.get(ticker)
+        fetch_start = start_ts
+        if last_dt is not None and pd.notna(last_dt):
+            try:
+                last_norm = pd.Timestamp(last_dt).normalize()
+                fetch_start = max(fetch_start, last_norm + pd.Timedelta(days=1))
+            except Exception:
+                fetch_start = start_ts
+
+        if fetch_start > end_ts:
+            continue
+
+        df_poly = fetch_polygon_bars(ticker, fetch_start.strftime('%Y-%m-%d'), end_ts.strftime('%Y-%m-%d'))
+        df_poly = _normalize_ohlcv_df(df_poly)
+        if not df_poly.empty:
+            polygon_ok[ticker] = (fetch_start, df_poly)
+        else:
+            yahoo_needed.append(ticker)
+            yahoo_start_by_ticker[ticker] = fetch_start
+
+    new_rows = []
+    for ticker, (fetch_start, df_poly) in polygon_ok.items():
+        df_add = df_poly[(df_poly.index >= fetch_start) & (df_poly.index <= end_ts)].copy()
+        if df_add.empty:
+            continue
+        df_add = df_add.reset_index()
+        df_add.insert(1, 'Ticker', ticker)
+        df_add['Source'] = 'polygon'
+        new_rows.append(df_add)
+
+    if yahoo_needed:
+        yahoo_min_start = min(yahoo_start_by_ticker.values())
+        yahoo_data = fetch_yahoo_batch(yahoo_needed, yahoo_min_start.strftime('%Y-%m-%d'), yf_session=None)
+        for ticker in yahoo_needed:
+            df_y = _normalize_ohlcv_df(yahoo_data.get(ticker, pd.DataFrame()))
+            if df_y.empty:
+                continue
+            fetch_start = yahoo_start_by_ticker.get(ticker, start_ts)
+            df_add = df_y[(df_y.index >= fetch_start) & (df_y.index <= end_ts)].copy()
+            if df_add.empty:
+                continue
+            df_add = df_add.reset_index()
+            df_add.insert(1, 'Ticker', ticker)
+            df_add['Source'] = 'yahoo'
+            new_rows.append(df_add)
+
+    if new_rows:
+        df_new = pd.concat(new_rows, ignore_index=True)
+        cache_df = pd.concat([cache_df, df_new], ignore_index=True)
+
+    if not cache_df.empty:
+        if 'Date' in cache_df.columns:
+            cache_df['Date'] = pd.to_datetime(cache_df['Date'], errors='coerce')
+        cache_df = cache_df.dropna(subset=['Date', 'Ticker'])
+        cache_df['Date'] = cache_df['Date'].dt.normalize()
+        cache_df = cache_df.drop_duplicates(subset=['Date', 'Ticker'], keep='last')
+        cache_df = cache_df.sort_values(by=['Date', 'Ticker'])
+
+    return _write_price_cache(year, cache_df)
+
+
+def update_price_cache(tickers, start_date, end_date):
+    start_ts = pd.Timestamp(start_date).normalize()
+    end_ts = pd.Timestamp(end_date).normalize()
+    years = list(range(int(start_ts.year), int(end_ts.year) + 1))
+    paths = []
+    for y in years:
+        year_start = pd.Timestamp(f"{y}-01-01")
+        year_end = pd.Timestamp(f"{y}-12-31")
+        seg_start = max(start_ts, year_start)
+        seg_end = min(end_ts, year_end)
+        if seg_start <= seg_end:
+            paths.append(update_price_cache_year(tickers, seg_start.strftime('%Y-%m-%d'), seg_end.strftime('%Y-%m-%d')))
+    return paths
+
+
+def load_cached_data(tickers, start_date, end_date):
+    start_ts = pd.Timestamp(start_date).normalize()
+    end_ts = pd.Timestamp(end_date).normalize()
+    years = list(range(int(start_ts.year), int(end_ts.year) + 1))
+    dfs = []
+    for y in years:
+        df_y = _read_price_cache(y)
+        if df_y is None or df_y.empty:
+            continue
+        dfs.append(df_y)
+
+    if not dfs:
+        return {t: pd.DataFrame() for t in tickers}
+
+    df_all = pd.concat(dfs, ignore_index=True)
+    df_all['Date'] = pd.to_datetime(df_all['Date'], errors='coerce')
+    df_all = df_all.dropna(subset=['Date', 'Ticker'])
+    df_all['Date'] = df_all['Date'].dt.normalize()
+    df_all = df_all[(df_all['Date'] >= start_ts) & (df_all['Date'] <= end_ts)]
+    df_all = df_all[df_all['Ticker'].isin(set(tickers))]
+
+    result = {}
+    for t in tickers:
+        df_t = df_all[df_all['Ticker'] == t]
+        if df_t.empty:
+            result[t] = pd.DataFrame()
+            continue
+        df_t = df_t.sort_values(by='Date')
+        df_t = df_t.set_index('Date')
+        df_t.index.name = 'Date'
+        df_t = df_t[['Open', 'High', 'Low', 'Close', 'Volume']]
+        result[t] = df_t
+
+    return result
 
 
 def update_stock_metadata():

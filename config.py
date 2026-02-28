@@ -42,6 +42,7 @@ DATA_SOURCE_PRIORITY = ['polygon', 'yahoo']  # Polygon 优先，Yahoo 备选（�
 # ==========================================
 STOCK_LIST_FILE = 'stock_list.csv'
 ARCHIVE_DIR = 'archive'
+PRICE_CACHE_DIR = 'price_cache'
 INDEX_TICKER = 'QQQ'
 SENDER_EMAIL = "wrobincool@gmail.com"
 RECEIVER_EMAIL = "wfancool@outlook.com"

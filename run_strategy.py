@@ -6,7 +6,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import pandas as pd
 from config import STRATEGY_CONFIG, INDEX_TICKER
 from utils import is_trading_day, manage_csv_archive, get_now_et, get_last_completed_nyse_session_date
-from data import update_stock_metadata, fetch_all_data, validate_ohlc
+from data import update_stock_metadata, update_price_cache, load_cached_data, validate_ohlc
 from indicators import calculate_kdj, calculate_atr, get_weekly_kdj_snapshot
 from patterns import identify_patterns
 from filters import check_j_filter, check_prior_trend, check_divergence, check_pattern_filter
@@ -312,11 +312,12 @@ def run_strategy():
         start_date_dt = end_date_dt - pd.DateOffset(years=1, months=6)
         start_date_str = start_date_dt.strftime("%Y-%m-%d")
         
-        # 3. 多数据源获取 (Polygon优先, Yahoo备选, 本地缓存)
+        # 3. 年度价格缓存：先增量拉取价格到 CSV，再从 CSV 读取计算
         all_tickers = list(dict.fromkeys(tickers_to_scan + [INDEX_TICKER]))
 
         end_date_str = target_end_date_str
-        ticker_data = fetch_all_data(all_tickers, start_date_str, yf_session=None, end_date=end_date_str)
+        update_price_cache(all_tickers, start_date_str, end_date_str)
+        ticker_data = load_cached_data(all_tickers, start_date_str, end_date_str)
 
         if not ticker_data:
             logger.critical("无法获取任何数据。请检查网络或 API Key。")
