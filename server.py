@@ -25,7 +25,7 @@ import io
 import glob
 import argparse
 from datetime import datetime
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 # ─── State ───────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,6 +64,31 @@ def read_csv_as_json():
         return [{"error": str(e)}]
 
 
+STOCK_LIST_FILE = os.path.join(BASE_DIR, "stock_list.csv")
+STOCK_FIELDS = ["Ticker", "Name_EN", "Name_CN", "Sector", "Type", "Avg_Volume"]
+
+
+def read_stock_list():
+    """Read stock_list.csv and return list of dicts."""
+    stocks = []
+    if not os.path.exists(STOCK_LIST_FILE):
+        return stocks
+    with open(STOCK_LIST_FILE, "r", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            stocks.append(row)
+    return stocks
+
+
+def write_stock_list(stocks):
+    """Write list of dicts back to stock_list.csv."""
+    with open(STOCK_LIST_FILE, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=STOCK_FIELDS)
+        writer.writeheader()
+        for s in stocks:
+            writer.writerow({k: s.get(k, "") for k in STOCK_FIELDS})
+
+
 class KDJHandler(http.server.SimpleHTTPRequestHandler):
     """Custom HTTP handler for dashboard + API."""
 
@@ -77,6 +102,22 @@ class KDJHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(json.dumps(data, ensure_ascii=False, default=str).encode("utf-8"))
+
+    def _read_body_json(self):
+        """Read and parse JSON body from request."""
+        length = int(self.headers.get("Content-Length", 0))
+        if length == 0:
+            return {}
+        body = self.rfile.read(length)
+        return json.loads(body.decode("utf-8"))
+
+    def do_OPTIONS(self):
+        """Handle CORS preflight."""
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
 
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -103,9 +144,83 @@ class KDJHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json(run_state)
             return
 
+        # ─── API: stock list (GET) ───────────────────
+        if path == "/api/stocks":
+            query = parse_qs(urlparse(self.path).query)
+            stocks = read_stock_list()
+            # Optional search by ticker
+            q = query.get("q", [None])[0]
+            if q:
+                q_upper = q.upper()
+                stocks = [s for s in stocks if q_upper in s.get("Ticker", "").upper()
+                          or q.lower() in s.get("Name_EN", "").lower()
+                          or q in s.get("Name_CN", "")]
+            self.send_json({"count": len(stocks), "stocks": stocks})
+            return
+
         # ─── Fallback: serve static files ─────────────
         self.directory = BASE_DIR
         super().do_GET()
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        # ─── API: add stock ──────────────────────────
+        if path == "/api/stocks":
+            try:
+                data = self._read_body_json()
+                ticker = (data.get("Ticker") or "").strip().upper()
+                if not ticker:
+                    self.send_json({"ok": False, "error": "Ticker 不能为空 Ticker is required"}, 400)
+                    return
+                stocks = read_stock_list()
+                # Check duplicate
+                if any(s["Ticker"].upper() == ticker for s in stocks):
+                    self.send_json({"ok": False, "error": f"股票 {ticker} 已存在 Ticker already exists"}, 409)
+                    return
+                new_stock = {
+                    "Ticker": ticker,
+                    "Name_EN": (data.get("Name_EN") or "").strip(),
+                    "Name_CN": (data.get("Name_CN") or "").strip(),
+                    "Sector": (data.get("Sector") or "").strip(),
+                    "Type": (data.get("Type") or "Stock").strip(),
+                    "Avg_Volume": str(data.get("Avg_Volume", "0")).strip(),
+                }
+                stocks.append(new_stock)
+                write_stock_list(stocks)
+                self.send_json({"ok": True, "stock": new_stock, "total": len(stocks)})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+            return
+
+        self.send_json({"error": "Not found"}, 404)
+
+    def do_DELETE(self):
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        # ─── API: delete stock ───────────────────────
+        if path == "/api/stocks":
+            try:
+                data = self._read_body_json()
+                ticker = (data.get("Ticker") or "").strip().upper()
+                if not ticker:
+                    self.send_json({"ok": False, "error": "Ticker 不能为空 Ticker is required"}, 400)
+                    return
+                stocks = read_stock_list()
+                original_len = len(stocks)
+                stocks = [s for s in stocks if s["Ticker"].upper() != ticker]
+                if len(stocks) == original_len:
+                    self.send_json({"ok": False, "error": f"股票 {ticker} 不存在 Ticker not found"}, 404)
+                    return
+                write_stock_list(stocks)
+                self.send_json({"ok": True, "deleted": ticker, "total": len(stocks)})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+            return
+
+        self.send_json({"error": "Not found"}, 404)
 
     def serve_dashboard(self):
         dashboard_path = os.path.join(BASE_DIR, "dashboard.html")
@@ -234,9 +349,12 @@ def main():
 ║                                                           ║
 ║   🌐 Open in browser:  http://localhost:{args.port}            ║
 ║   📡 API endpoints:                                       ║
-║       GET /api/signals  — signal data (JSON)              ║
-║       GET /api/run      — run scanner (SSE stream)        ║
-║       GET /api/status   — server status                   ║
+║       GET    /api/signals  — signal data (JSON)           ║
+║       GET    /api/run      — run scanner (SSE stream)     ║
+║       GET    /api/status   — server status                ║
+║       GET    /api/stocks   — list stocks (?q=keyword)     ║
+║       POST   /api/stocks   — add a stock (JSON body)     ║
+║       DELETE /api/stocks   — remove a stock (JSON body)   ║
 ║                                                           ║
 ║   Press Ctrl+C to stop                                    ║
 ╚═══════════════════════════════════════════════════════════╝

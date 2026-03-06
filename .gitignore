@@ -13,3 +13,6 @@ GMAIL_APP_PASSWORD.txt
 nltk_data/
 
 .DS_Store
+
+# 本地临时输出（误放入仓库目录时避免被跟踪）
+us_market_output/
