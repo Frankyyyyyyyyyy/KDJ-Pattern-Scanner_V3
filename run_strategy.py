@@ -10,9 +10,6 @@ from data import update_stock_metadata, update_price_cache, load_cached_data, va
 from indicators import calculate_kdj, calculate_atr, get_weekly_kdj_snapshot
 from patterns import identify_patterns
 from filters import check_j_filter, check_prior_trend, check_divergence, check_pattern_filter
-from reporting import send_email_report
-
-# Import new modules for V2
 from ml_predictor import train_and_predict
 
 # ==========================================
@@ -46,11 +43,6 @@ def process_ticker(ticker, ticker_map, ticker_type_map, df, df_index, scan_start
         df['Bearish_Patterns'], df['Bullish_Patterns'] = identify_patterns(df, j_values=df['J'])
 
         # Pre-calc MA
-        cfg = cfg
-        # DEBUG: Check config
-        # if ticker == 'AAPL':
-        #    logger.info(f"Worker Config Check for AAPL: MA Short={cfg['ma_short']}, Long={cfg['ma_long']}")
-
         df['MA10'] = df['Close'].rolling(cfg['ma_short']).mean()
         df['MA20'] = df['Close'].rolling(cfg['ma_long']).mean()
 
@@ -239,16 +231,11 @@ def process_ticker(ticker, ticker_map, ticker_type_map, df, df_index, scan_start
                     res_item['ML_Detail'] = "Single Model" if isinstance(current_ml_prob, (float, int)) else "N/A"
                     
                 # Signal Strength Adjustments
-                # if fund_score is not None and fund_score >= 6:
-                #    res_item['Signal Strength'] += " + Fund"
                 if prob_val > 0.5:
                      if direction == 'Long': res_item['Signal Strength'] += " + AI_Bull"
                      elif direction == 'Short': res_item['Signal Strength'] += " + AI_Bear"
-                # if news_sentiment is not None:
-                #    if direction == 'Long' and news_sentiment > 0.2: res_item['Signal Strength'] += " + News_Pos"
-                #    elif direction == 'Short' and news_sentiment < -0.2: res_item['Signal Strength'] += " + News_Neg"
-                    
-                # Calculate Stop Loss / Shares (Replicate reporting.py logic briefly)
+
+                # Calculate Stop Loss / Shares
                 atr_val = res_item['ATR']
                 price = res_item['Price']
                 if direction == 'Long':
@@ -281,12 +268,6 @@ def run_strategy():
             logger.info("今天美股休市，跳过扫描任务。")
             return
 
-        # 0. IP Geolocation & Regional Config (Removed for V2 Pure Polygon Mode)
-        # country_code, country_name, ip_addr, yahoo_domain = detect_ip_country()
-        # logger.info(f"当前网络环境: {country_name} ({country_code}), IP: {ip_addr}")
-        # logger.info(f"使用 Yahoo Finance 区域: {yahoo_domain}")
-        # yf_session = configure_yf_session(yahoo_domain)
-        
         cfg_run = STRATEGY_CONFIG.copy()
 
         # 1. Update Metadata
@@ -496,8 +477,6 @@ def run_strategy():
             # --- CSV 归档逻辑 ---
             csv_file = manage_csv_archive(df_res)
 
-            # 邮件功能已禁用，信号通过 Web Dashboard 查看
-            # Email disabled — view signals via Web Dashboard (python server.py)
             logger.info(f"扫描完成，共 {len(df_res)} 条信号已保存至 {csv_file}")
             logger.info(f"Scan complete. {len(df_res)} signals saved to {csv_file}")
         else:
