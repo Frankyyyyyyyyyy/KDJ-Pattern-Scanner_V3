@@ -148,15 +148,137 @@
   .bi-sub { display: block; font-size: 10px; color: var(--text-dim); font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: 1px; }
   @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 640px) { .container { padding: 16px; } .stats-row { grid-template-columns: repeat(2, 1fr); } .header-inner { flex-direction: column; gap: 10px; align-items: flex-start; } .logo-text h1 { font-size: 13px; } }
+
+  /* ─── Stock Management Modal ────────────────── */
+  .stock-mgr-btn {
+    padding: 7px 16px; font-size: 13px; font-weight: 600; color: white;
+    background: linear-gradient(135deg, #6366f1, #818cf8); border: none; border-radius: var(--radius-sm);
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .stock-mgr-btn:hover { box-shadow: 0 2px 12px rgba(99,102,241,0.4); transform: translateY(-1px); }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 1000; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    width: 90%; max-width: 880px; max-height: 85vh; display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h2 { font-size: 16px; font-weight: 700; }
+  .modal-close { background: none; border: none; color: var(--text-dim); font-size: 22px; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+  .modal-close:hover { color: var(--text); background: var(--card-hover); }
+  .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+
+  .stock-add-form {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 16px; margin-bottom: 20px;
+  }
+  .stock-add-form .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .stock-add-form label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stock-add-form input, .stock-add-form select {
+    background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; transition: border-color 0.2s;
+  }
+  .stock-add-form input:focus, .stock-add-form select:focus { border-color: var(--accent); }
+  .stock-add-form .form-actions {
+    grid-column: span 3; display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px;
+  }
+  .btn-add {
+    padding: 8px 20px; font-size: 13px; font-weight: 600; color: white;
+    background: var(--green); border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-add:hover { background: #16a34a; }
+  .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .stock-search-row { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; }
+  .stock-search-input {
+    flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 14px; color: var(--text); font-size: 13px; outline: none;
+  }
+  .stock-search-input:focus { border-color: var(--accent); }
+  .stock-count-badge { font-size: 12px; color: var(--text-dim); background: var(--bg); padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+
+  .stock-list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .stock-list-table th {
+    background: #151722; padding: 10px 14px; text-align: left; font-weight: 600;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-dim); border-bottom: 1px solid var(--border);
+  }
+  .stock-list-table td { padding: 10px 14px; border-bottom: 1px solid rgba(42,46,62,0.5); }
+  .stock-list-table tr:hover td { background: var(--card-hover); }
+  .stock-ticker { color: var(--accent); font-weight: 700; }
+  .stock-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+  }
+  .type-stock { background: rgba(99,102,241,0.12); color: var(--accent); }
+  .type-etf { background: rgba(234,179,8,0.12); color: var(--yellow); }
+  .btn-del {
+    padding: 4px 12px; font-size: 12px; font-weight: 600; color: var(--red);
+    background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 6px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-del:hover { background: var(--red); color: white; }
+
+  .stock-toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 2000;
+    padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    color: white; opacity: 0; transform: translateY(10px);
+    transition: all 0.3s ease; pointer-events: none;
+  }
+  .stock-toast.show { opacity: 1; transform: translateY(0); }
+  .stock-toast.success { background: var(--green); }
+  .stock-toast.error { background: var(--red); }
 </style>
 </head>
 <body>
 <div class="header"><div class="header-inner">
   <div class="logo"><div class="logo-icon">K</div><div class="logo-text"><h1>KDJ Signal Scanner 信号扫描器</h1><span class="version-tag">V3 · AI Enhanced</span></div></div>
   <div class="header-right">
+    <button class="stock-mgr-btn" onclick="openStockModal()">&#9881; 股票管理 Stock Mgr</button>
     <div class="header-meta"><div class="dot"></div><span id="headerDate">Loading...</span><span class="sep">|</span><span id="headerTotal">--</span></div>
   </div>
 </div></div>
+<!-- Stock Management Modal -->
+<div class="modal-overlay" id="stockModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>&#128202; 股票列表管理 Stock List Management</h2>
+      <button class="modal-close" onclick="closeStockModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="stock-add-form" id="stockAddForm">
+        <div class="form-group"><label>股票代码 Ticker *</label><input id="addTicker" placeholder="e.g. AAPL" maxlength="10"></div>
+        <div class="form-group"><label>英文名称 Name EN</label><input id="addNameEN" placeholder="e.g. Apple Inc."></div>
+        <div class="form-group"><label>中文名称 Name CN</label><input id="addNameCN" placeholder="e.g. 苹果"></div>
+        <div class="form-group"><label>行业 Sector</label><input id="addSector" placeholder="e.g. Consumer Electronics"></div>
+        <div class="form-group"><label>类型 Type</label>
+          <select id="addType"><option value="Stock">Stock 股票</option><option value="Index ETF">Index ETF 指数ETF</option><option value="Leveraged ETF">Leveraged ETF 杠杆ETF</option></select>
+        </div>
+        <div class="form-group"><label>&nbsp;</label></div>
+        <div class="form-actions">
+          <button class="btn-add" id="btnAddStock" onclick="addStock()">+ 添加股票 Add Stock</button>
+        </div>
+      </div>
+      <div class="stock-search-row">
+        <input class="stock-search-input" id="stockSearchInput" placeholder="搜索股票 Search by ticker, name..." oninput="filterStockTable()">
+        <span class="stock-count-badge" id="stockCountBadge">0 stocks</span>
+      </div>
+      <table class="stock-list-table">
+        <thead><tr><th>#</th><th>代码 Ticker</th><th>英文名 Name EN</th><th>中文名 Name CN</th><th>行业 Sector</th><th>类型 Type</th><th>操作 Action</th></tr></thead>
+        <tbody id="stockTableBody"><tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:30px">加载中 Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="stock-toast" id="stockToast"></div>
 <div class="container">
   <div class="stats-row" id="statsRow"></div>
   <div class="controls">
@@ -502,6 +624,144 @@ function populateTickerDropdown(){const ts=[...new Set(allSignals.map(s=>s.ticke
 function init(){allSignals=parseCSV(CSV_DATA);finishInit();}
 function finishInit(){const ds=[...new Set(allSignals.map(s=>s.date))].sort();document.getElementById('headerDate').textContent=ds.length>0?`${ds[0]} ~ ${ds[ds.length-1]}`:'暂无数据';document.getElementById('headerTotal').textContent=`共 ${allSignals.length} 条信号 total signals`;populateTickerDropdown();applyFilters();}
 init();
+
+/* ═══════ Stock Management Functions ═══════ */
+let stockCache = [];
+
+function showToast(msg, type) {
+  const t = document.getElementById('stockToast');
+  t.textContent = msg; t.className = 'stock-toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function openStockModal() {
+  document.getElementById('stockModal').classList.add('open');
+  loadStocks();
+}
+
+function closeStockModal() {
+  document.getElementById('stockModal').classList.remove('open');
+}
+
+// Close modal on overlay click
+document.getElementById('stockModal').addEventListener('click', function(e) {
+  if (e.target === this) closeStockModal();
+});
+
+async function loadStocks() {
+  try {
+    const resp = await fetch('/api/stocks');
+    const data = await resp.json();
+    stockCache = data.stocks || [];
+    renderStockTable(stockCache);
+  } catch (e) {
+    stockCache = [];
+    document.getElementById('stockTableBody').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:30px">加载失败 Load failed: ' + e.message + '</td></tr>';
+  }
+}
+
+function filterStockTable() {
+  const q = (document.getElementById('stockSearchInput').value || '').toLowerCase();
+  if (!q) { renderStockTable(stockCache); return; }
+  const f = stockCache.filter(s =>
+    (s.Ticker || '').toLowerCase().includes(q) ||
+    (s.Name_EN || '').toLowerCase().includes(q) ||
+    (s.Name_CN || '').includes(q) ||
+    (s.Sector || '').toLowerCase().includes(q)
+  );
+  renderStockTable(f);
+}
+
+function renderStockTable(stocks) {
+  document.getElementById('stockCountBadge').textContent = stocks.length + ' stocks';
+  if (!stocks.length) {
+    document.getElementById('stockTableBody').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:30px">无匹配 No stocks found</td></tr>';
+    return;
+  }
+  document.getElementById('stockTableBody').innerHTML = stocks.map((s, i) => {
+    const tc = (s.Type || '').includes('ETF') ? 'type-etf' : 'type-stock';
+    const tl = (s.Type || '').includes('ETF') ? 'ETF' : 'Stock';
+    return '<tr>' +
+      '<td style="color:var(--text-dim)">' + (i + 1) + '</td>' +
+      '<td><span class="stock-ticker">' + (s.Ticker || '') + '</span></td>' +
+      '<td>' + (s.Name_EN || '') + '</td>' +
+      '<td>' + (s.Name_CN || '') + '</td>' +
+      '<td style="color:var(--text-dim)">' + (s.Sector || '') + '</td>' +
+      '<td><span class="stock-type-badge ' + tc + '">' + (s.Type || tl) + '</span></td>' +
+      '<td><button class="btn-del" onclick="deleteStock(\'' + (s.Ticker || '') + '\')">&#10005; 删除</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function addStock() {
+  const ticker = document.getElementById('addTicker').value.trim().toUpperCase();
+  if (!ticker) { showToast('请输入股票代码 Please enter a ticker', 'error'); return; }
+
+  const body = {
+    Ticker: ticker,
+    Name_EN: document.getElementById('addNameEN').value.trim(),
+    Name_CN: document.getElementById('addNameCN').value.trim(),
+    Sector: document.getElementById('addSector').value.trim(),
+    Type: document.getElementById('addType').value,
+    Avg_Volume: "0"
+  };
+
+  const btn = document.getElementById('btnAddStock');
+  btn.disabled = true; btn.textContent = '添加中...';
+
+  try {
+    const resp = await fetch('/api/stocks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      showToast('已添加 ' + ticker + ' Added successfully', 'success');
+      // Clear form
+      document.getElementById('addTicker').value = '';
+      document.getElementById('addNameEN').value = '';
+      document.getElementById('addNameCN').value = '';
+      document.getElementById('addSector').value = '';
+      document.getElementById('addType').value = 'Stock';
+      loadStocks();
+    } else {
+      showToast(data.error || '添加失败 Add failed', 'error');
+    }
+  } catch (e) {
+    showToast('网络错误 Network error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '+ 添加股票 Add Stock';
+  }
+}
+
+async function deleteStock(ticker) {
+  if (!confirm('确定删除 ' + ticker + '？\nConfirm delete ' + ticker + '?')) return;
+
+  try {
+    const resp = await fetch('/api/stocks', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ Ticker: ticker })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      showToast('已删除 ' + ticker + ' Deleted', 'success');
+      loadStocks();
+    } else {
+      showToast(data.error || '删除失败 Delete failed', 'error');
+    }
+  } catch (e) {
+    showToast('网络错误 Network error: ' + e.message, 'error');
+  }
+}
+
+// Allow Enter key to submit add form
+document.getElementById('addTicker').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') addStock();
+});
 </script>
 </body>
 </html>
