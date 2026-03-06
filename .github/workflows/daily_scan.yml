@@ -54,12 +54,12 @@ jobs:
         run: |
           python run_strategy.py
 
-      # 5. Rebuild dashboard（合并当前+历史CSV，嵌入HTML）
-      - name: Rebuild Dashboard 重建仪表盘
+      # 5. Rebuild dashboard data（合并当前+历史CSV，生成 signals_latest.csv）
+      - name: Rebuild Dashboard Data 重建仪表盘数据
         run: |
           python build_dashboard.py
 
-      # 6. Commit CSV + dashboard（信号文件 + 归档 + 仪表盘）
+      # 6. Commit CSV + dashboard data（信号文件 + 归档 + 数据缓存）
       - name: Commit results 提交结果
         run: |
           git config user.name "github-actions[bot]"
@@ -67,7 +67,7 @@ jobs:
           mkdir -p archive
           mkdir -p price_cache
           shopt -s nullglob
-          git add signals_*.csv signals_latest.csv dashboard.html index.html archive/ price_cache/
+          git add signals_*.csv signals_latest.csv index.html archive/ price_cache/
           # 如果没有变化则不提交
           git diff --cached --quiet || git commit -m "📊 Daily scan $(date -u +%Y-%m-%d)"
           # 拉取最新代码避免冲突（工作区需干净；若有变更会自动暂存）

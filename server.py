@@ -2,7 +2,7 @@
 """
 KDJ Pattern Scanner V3 — Lightweight Web Server
 =================================================
-Serves dashboard.html and provides:
+Serves index.html and provides:
   GET  /                → dashboard page
   GET  /api/signals     → CSV data as JSON
   GET  /api/run         → SSE stream (launches run_strategy.py, streams stdout/stderr)
@@ -108,9 +108,9 @@ class KDJHandler(http.server.SimpleHTTPRequestHandler):
         super().do_GET()
 
     def serve_dashboard(self):
-        dashboard_path = os.path.join(BASE_DIR, "dashboard.html")
+        dashboard_path = os.path.join(BASE_DIR, "index.html")
         if not os.path.exists(dashboard_path):
-            self.send_error(404, "dashboard.html not found")
+            self.send_error(404, "index.html not found")
             return
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")

@@ -33,7 +33,7 @@ jobs:
         run: |
           python tools/apply_stock_list_update.py
 
-      - name: Rebuild dashboard
+      - name: Rebuild dashboard data
         run: |
           python build_dashboard.py
 
@@ -41,7 +41,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add stock_list.csv dashboard.html index.html
+          git add stock_list.csv signals_latest.csv index.html
           git diff --cached --quiet || git commit -m "Update stock_list from issue #${{ github.event.issue.number }}"
           git pull --rebase --autostash origin main
           git push
@@ -62,4 +62,3 @@ jobs:
               issue_number: context.issue.number,
               state: 'closed'
             })
-
