@@ -54,6 +54,29 @@
     background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite;
   }
   .header-meta .sep { color: var(--border); }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .btn {
+    padding: 7px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); box-shadow: 0 0 14px var(--accent-glow); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+  .source-pill {
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
 
 
@@ -155,6 +178,10 @@
   <div class="logo"><div class="logo-icon">K</div><div class="logo-text"><h1>KDJ Signal Scanner 信号扫描器</h1><span class="version-tag">V3 · AI Enhanced</span></div></div>
   <div class="header-right">
     <div class="header-meta"><div class="dot"></div><span id="headerDate">Loading...</span><span class="sep">|</span><span id="headerTotal">--</span></div>
+    <div class="header-actions">
+      <span class="source-pill" id="headerSource">Data: --</span>
+      <button class="btn" id="refreshBtn">刷新 Refresh</button>
+    </div>
   </div>
 </div></div>
 <div class="container">
@@ -467,8 +494,69 @@ const CSV_DATA = `Date (日期),Ticker (股票代码),Name (名称),Type (类型
 let allSignals=[],filtered=[],sortCol='date',sortAsc=false,currentPage=1;
 const PAGE_SIZE=30;
 let expandedIdx=-1,dirFilter='all',strFilter='all',tickerFilter='all',searchText='',timeDays=7;
+let dataSource='embedded';
 
 function parseCSV(csv){const lines=csv.trim().split('\n');const data=[];for(let i=1;i<lines.length;i++){const vals=[];let cur='',inQ=false;for(const ch of lines[i]){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}else cur+=ch;}vals.push(cur.trim());if(vals.length>=10)data.push({date:vals[0],ticker:vals[1],name:vals[2],type:vals[3],volume:parseInt(vals[4])||0,strength:vals[5],dir:vals[6],mlProb:parseFloat((vals[7]||'0').replace('%',''))||0,mlDetail:vals[8]||'',patterns:vals[9]||'',dailyJ:parseFloat(vals[10])||0,weeklyJ:parseFloat(vals[11])||0,price:parseFloat(vals[12])||0,atr:parseFloat(vals[13])||0,stopLoss:parseFloat(vals[14])||0,shares:parseInt(vals[15])||0,posSize:parseFloat(vals[16])||0});}return data;}
+function mapApiRow(r){
+  const get=(k)=>r?.[k]??'';
+  const pct=(v)=>parseFloat(String(v||'0').replace('%',''))||0;
+  const num=(v)=>parseFloat(String(v||'0').replace(/[^0-9.\-]/g,''))||0;
+  const int=(v)=>parseInt(String(v||'0').replace(/[^0-9\-]/g,''))||0;
+  return {
+    date: String(get('Date (日期)')||get('Date')||'').slice(0,10),
+    ticker: String(get('Ticker (股票代码)')||get('Ticker')||''),
+    name: String(get('Name (名称)')||get('Name')||''),
+    type: String(get('Type (类型)')||get('Type')||''),
+    volume: int(get('Volume (成交量)')||get('Volume')),
+    strength: String(get('Signal Strength')||get('Strength')||''),
+    dir: String(get('Direction (方向)')||get('Direction')||''),
+    mlProb: pct(get('ML_Prob')||get('ML Prob')||get('ML_Prob%')),
+    mlDetail: String(get('ML_Detail')||get('ML Detail')||''),
+    patterns: String(get('Pattern (形态)')||get('Pattern')||''),
+    dailyJ: num(get('Daily_J')||get('Daily J')),
+    weeklyJ: num(get('Weekly_J')||get('Weekly J')),
+    price: num(get('Price')),
+    atr: num(get('ATR')),
+    stopLoss: num(get('Stop_Loss (止损)')||get('Stop Loss')||get('Stop_Loss')),
+    shares: int(get('Suggested_Shares (建议股数)')||get('Suggested Shares')||get('Suggested_Shares')),
+    posSize: num(get('Position_Size (建议仓位$)')||get('Position Size')||get('Position_Size')),
+  };
+}
+async function fetchWithTimeout(url,ms){const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);try{return await fetch(url,{cache:'no-store',signal:c.signal});}finally{clearTimeout(t);}}
+function setHeaderSource(){const el=document.getElementById('headerSource');if(!el)return;const map={api:'Data: API',csv:'Data: CSV',embedded:'Data: Embedded'};el.textContent=map[dataSource]||`Data: ${dataSource}`;}
+async function loadSignals(){
+  const btn=document.getElementById('refreshBtn');
+  if(btn)btn.disabled=true;
+  try{
+    try{
+      const r=await fetchWithTimeout('/api/signals',2500);
+      if(r.ok){
+        const j=await r.json();
+        if(j&&Array.isArray(j.signals)){
+          allSignals=j.signals.map(mapApiRow).filter(s=>s.ticker&&s.date);
+          dataSource='api';
+          return;
+        }
+      }
+    }catch(e){}
+    try{
+      const r=await fetchWithTimeout(`signals_latest.csv?t=${Date.now()}`,2500);
+      if(r.ok){
+        const txt=await r.text();
+        const parsed=parseCSV(txt);
+        if(parsed.length){
+          allSignals=parsed;
+          dataSource='csv';
+          return;
+        }
+      }
+    }catch(e){}
+    allSignals=parseCSV(CSV_DATA);
+    dataSource='embedded';
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
 function getCutoffDate(){if(timeDays==='all')return null;const ld=allSignals.reduce((m,s)=>s.date>m?s.date:m,'');if(!ld)return null;const d=new Date(ld);d.setDate(d.getDate()-timeDays);return d.toISOString().slice(0,10);}
 
 
@@ -499,8 +587,8 @@ function renderTimeline(){const dm={};filtered.forEach(s=>{if(!dm[s.date])dm[s.d
 function renderTickerBreakdown(){const c={};filtered.forEach(s=>{if(!c[s.ticker])c[s.ticker]={short:0,long:0};if(s.dir==='Short')c[s.ticker].short++;else c[s.ticker].long++;});const so=Object.entries(c).sort((a,b)=>(b[1].short+b[1].long)-(a[1].short+a[1].long));const mx=so.length>0?so[0][1].short+so[0][1].long:1;document.getElementById('tickerBreakdown').innerHTML=so.length===0?'<div class="empty-state" style="padding:20px">暂无数据 No data</div>':so.slice(0,10).map(([t,c])=>{const sw=(c.short/mx*100).toFixed(0),lw=(c.long/mx*100).toFixed(0);return`<div class="bar-chart-item"><div class="bar-label">${t}</div><div class="bar-track"><div style="display:flex;height:100%;"><div class="bar-fill short-bar" style="width:${sw}%;">${c.short||''}</div><div class="bar-fill long-bar" style="width:${lw}%;">${c.long||''}</div></div></div></div>`;}).join('');}
 function renderPatternDist(){const c={};filtered.forEach(s=>{s.patterns.split(',').map(p=>p.trim()).filter(Boolean).forEach(p=>{c[p]=(c[p]||0)+1;});});const so=Object.entries(c).sort((a,b)=>b[1]-a[1]);document.getElementById('patternDist').innerHTML=so.length===0?'<div class="empty-state" style="padding:20px">暂无数据 No data</div>':so.map(([p,c])=>`<div class="pattern-list-item"><span>${p}</span><span class="pattern-list-count">${c}</span></div>`).join('');}
 function populateTickerDropdown(){const ts=[...new Set(allSignals.map(s=>s.ticker))].sort();const sel=document.getElementById('tickerFilter');ts.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);});}
-function init(){allSignals=parseCSV(CSV_DATA);finishInit();}
-function finishInit(){const ds=[...new Set(allSignals.map(s=>s.date))].sort();document.getElementById('headerDate').textContent=ds.length>0?`${ds[0]} ~ ${ds[ds.length-1]}`:'暂无数据';document.getElementById('headerTotal').textContent=`共 ${allSignals.length} 条信号 total signals`;populateTickerDropdown();applyFilters();}
+function finishInit(){const ds=[...new Set(allSignals.map(s=>s.date))].sort();document.getElementById('headerDate').textContent=ds.length>0?`${ds[0]} ~ ${ds[ds.length-1]}`:'暂无数据';document.getElementById('headerTotal').textContent=`共 ${allSignals.length} 条信号 total signals`;document.getElementById('tickerFilter').innerHTML='<option value="all">全部股票 All Tickers</option>';populateTickerDropdown();setHeaderSource();applyFilters();}
+async function init(){await loadSignals();finishInit();const btn=document.getElementById('refreshBtn');if(btn)btn.addEventListener('click',async()=>{await loadSignals();finishInit();});}
 init();
 </script>
 </body>

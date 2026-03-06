@@ -67,7 +67,7 @@ jobs:
           mkdir -p archive
           mkdir -p price_cache
           shopt -s nullglob
-          git add signals_*.csv dashboard.html index.html archive/ price_cache/
+          git add signals_*.csv signals_latest.csv dashboard.html index.html archive/ price_cache/
           # 如果没有变化则不提交
           git diff --cached --quiet || git commit -m "📊 Daily scan $(date -u +%Y-%m-%d)"
           # 拉取最新代码避免冲突（工作区需干净；若有变更会自动暂存）

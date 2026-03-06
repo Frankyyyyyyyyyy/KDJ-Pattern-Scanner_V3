@@ -107,6 +107,9 @@ def main():
 
     if csv_text:
         embed_csv_into_html(csv_text)
+        latest_csv_path = os.path.join(BASE_DIR, "signals_latest.csv")
+        with open(latest_csv_path, "w", encoding="utf-8") as f:
+            f.write(csv_text)
         # 复制一份 index.html 供 GitHub Pages 使用
         import shutil
         src = os.path.join(BASE_DIR, "dashboard.html")
