@@ -271,6 +271,13 @@
         <input class="stock-search-input" id="stockSearchInput" placeholder="搜索股票 Search by ticker, name..." oninput="filterStockTable()">
         <span class="stock-count-badge" id="stockCountBadge">0 stocks</span>
       </div>
+      <div class="stock-search-row" style="justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <span class="stock-count-badge" id="stockModeBadge">Mode: --</span>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="btn-add" id="btnSubmitGit" style="background:var(--accent);" onclick="submitStockChangesToGit()">提交到GitHub Submit</button>
+          <button class="btn-del" id="btnResetLocal" onclick="resetLocalStockChanges()">清除本地改动 Reset</button>
+        </div>
+      </div>
       <table class="stock-list-table">
         <thead><tr><th>#</th><th>代码 Ticker</th><th>英文名 Name EN</th><th>中文名 Name CN</th><th>行业 Sector</th><th>类型 Type</th><th>操作 Action</th></tr></thead>
         <tbody id="stockTableBody"><tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:30px">加载中 Loading...</td></tr></tbody>
@@ -627,6 +634,10 @@ init();
 
 /* ═══════ Stock Management Functions ═══════ */
 let stockCache = [];
+let stockMode = 'unknown';
+let stockPending = { add: [], delete: [] };
+const GITHUB_REPO = 'Frankyyyyyyyyyy/KDJ-Pattern-Scanner_V3';
+const STOCK_PENDING_KEY = 'kdj_stock_pending_v1';
 
 function showToast(msg, type) {
   const t = document.getElementById('stockToast');
@@ -650,15 +661,106 @@ document.getElementById('stockModal').addEventListener('click', function(e) {
 
 async function loadStocks() {
   try {
-    const resp = await fetch('/api/stocks');
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 1200);
+    const resp = await fetch('/api/stocks', { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!resp.ok) throw new Error('API not available');
     const data = await resp.json();
+    stockMode = 'api';
     stockCache = data.stocks || [];
+    updateStockModeUI();
     renderStockTable(stockCache);
   } catch (e) {
-    stockCache = [];
-    document.getElementById('stockTableBody').innerHTML =
-      '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:30px">加载失败 Load failed: ' + e.message + '</td></tr>';
+    try {
+      stockMode = 'pages';
+      loadStockPending();
+      const resp2 = await fetch('stock_list.csv', { cache: 'no-store' });
+      if (!resp2.ok) throw new Error('stock_list.csv not found');
+      const text = await resp2.text();
+      stockCache = parseStockCSV(text);
+      stockCache = applyPendingToStocks(stockCache);
+      updateStockModeUI();
+      renderStockTable(stockCache);
+    } catch (e2) {
+      stockCache = [];
+      stockMode = 'unknown';
+      updateStockModeUI();
+      document.getElementById('stockTableBody').innerHTML =
+        '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:30px">加载失败 Load failed: ' + (e2.message || e2) + '</td></tr>';
+    }
   }
+}
+
+function updateStockModeUI() {
+  const badge = document.getElementById('stockModeBadge');
+  const submit = document.getElementById('btnSubmitGit');
+  const reset = document.getElementById('btnResetLocal');
+  if (stockMode === 'api') {
+    badge.textContent = 'Mode: Local server (可写)';
+    submit.style.display = 'none';
+    reset.style.display = 'none';
+  } else if (stockMode === 'pages') {
+    badge.textContent = 'Mode: GitHub Pages (需提交Issue)';
+    submit.style.display = 'inline-block';
+    reset.style.display = 'inline-block';
+  } else {
+    badge.textContent = 'Mode: --';
+    submit.style.display = 'none';
+    reset.style.display = 'none';
+  }
+}
+
+function parseStockCSV(text) {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return [];
+  const headers = lines[0].split(',').map(h => h.trim());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',');
+    const row = {};
+    headers.forEach((h, idx) => row[h] = (parts[idx] || '').trim());
+    if (row.Ticker) rows.push(row);
+  }
+  return rows;
+}
+
+function loadStockPending() {
+  try {
+    const raw = localStorage.getItem(STOCK_PENDING_KEY);
+    stockPending = raw ? JSON.parse(raw) : { add: [], delete: [] };
+    if (!stockPending || typeof stockPending !== 'object') stockPending = { add: [], delete: [] };
+    stockPending.add = Array.isArray(stockPending.add) ? stockPending.add : [];
+    stockPending.delete = Array.isArray(stockPending.delete) ? stockPending.delete : [];
+  } catch {
+    stockPending = { add: [], delete: [] };
+  }
+}
+
+function saveStockPending() {
+  try { localStorage.setItem(STOCK_PENDING_KEY, JSON.stringify(stockPending)); } catch {}
+}
+
+function applyPendingToStocks(stocks) {
+  const delSet = new Set(stockPending.delete.map(t => String(t || '').toUpperCase()));
+  const byTicker = new Map();
+  stocks.forEach(s => byTicker.set(String(s.Ticker || '').toUpperCase(), s));
+  delSet.forEach(t => byTicker.delete(t));
+  stockPending.add.forEach(s => {
+    const t = String((s && s.Ticker) || '').toUpperCase();
+    if (!t) return;
+    if (!byTicker.has(t)) {
+      byTicker.set(t, {
+        Ticker: t,
+        Name_EN: (s.Name_EN || ''),
+        Name_CN: (s.Name_CN || ''),
+        Sector: (s.Sector || ''),
+        Type: (s.Type || 'Stock'),
+        Avg_Volume: String(s.Avg_Volume || '0')
+      });
+    }
+  });
+  return Array.from(byTicker.values());
 }
 
 function filterStockTable() {
@@ -712,23 +814,41 @@ async function addStock() {
   btn.disabled = true; btn.textContent = '添加中...';
 
   try {
-    const resp = await fetch('/api/stocks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await resp.json();
-    if (data.ok) {
-      showToast('已添加 ' + ticker + ' Added successfully', 'success');
-      // Clear form
+    if (stockMode === 'pages') {
+      loadStockPending();
+      const t = ticker.toUpperCase();
+      const exists = stockCache.some(s => String(s.Ticker || '').toUpperCase() === t);
+      if (exists) { showToast('已存在 Ticker already exists', 'error'); return; }
+      stockPending.delete = stockPending.delete.filter(x => String(x || '').toUpperCase() !== t);
+      stockPending.add = stockPending.add.filter(s => String((s && s.Ticker) || '').toUpperCase() !== t);
+      stockPending.add.push(body);
+      saveStockPending();
+      stockCache.push(body);
+      renderStockTable(stockCache);
+      showToast('已加入待提交列表，请点“提交到GitHub”', 'success');
       document.getElementById('addTicker').value = '';
       document.getElementById('addNameEN').value = '';
       document.getElementById('addNameCN').value = '';
       document.getElementById('addSector').value = '';
       document.getElementById('addType').value = 'Stock';
-      loadStocks();
     } else {
-      showToast(data.error || '添加失败 Add failed', 'error');
+      const resp = await fetch('/api/stocks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        showToast('已添加 ' + ticker + ' Added successfully', 'success');
+        document.getElementById('addTicker').value = '';
+        document.getElementById('addNameEN').value = '';
+        document.getElementById('addNameCN').value = '';
+        document.getElementById('addSector').value = '';
+        document.getElementById('addType').value = 'Stock';
+        loadStocks();
+      } else {
+        showToast(data.error || '添加失败 Add failed', 'error');
+      }
     }
   } catch (e) {
     showToast('网络错误 Network error: ' + e.message, 'error');
@@ -741,21 +861,55 @@ async function deleteStock(ticker) {
   if (!confirm('确定删除 ' + ticker + '？\nConfirm delete ' + ticker + '?')) return;
 
   try {
-    const resp = await fetch('/api/stocks', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ Ticker: ticker })
-    });
-    const data = await resp.json();
-    if (data.ok) {
-      showToast('已删除 ' + ticker + ' Deleted', 'success');
-      loadStocks();
+    if (stockMode === 'pages') {
+      loadStockPending();
+      const t = String(ticker || '').trim().toUpperCase();
+      stockPending.add = stockPending.add.filter(s => String((s && s.Ticker) || '').toUpperCase() !== t);
+      if (!stockPending.delete.some(x => String(x || '').toUpperCase() === t)) stockPending.delete.push(t);
+      saveStockPending();
+      stockCache = stockCache.filter(s => String(s.Ticker || '').toUpperCase() !== t);
+      renderStockTable(stockCache);
+      showToast('已加入待删除列表，请点“提交到GitHub”', 'success');
     } else {
-      showToast(data.error || '删除失败 Delete failed', 'error');
+      const resp = await fetch('/api/stocks', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Ticker: ticker })
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        showToast('已删除 ' + ticker + ' Deleted', 'success');
+        loadStocks();
+      } else {
+        showToast(data.error || '删除失败 Delete failed', 'error');
+      }
     }
   } catch (e) {
     showToast('网络错误 Network error: ' + e.message, 'error');
   }
+}
+
+function submitStockChangesToGit() {
+  loadStockPending();
+  const add = stockPending.add || [];
+  const del = stockPending.delete || [];
+  if ((!add.length) && (!del.length)) {
+    showToast('没有待提交的改动 No pending changes', 'error');
+    return;
+  }
+  const payload = { add: add, delete: del };
+  const title = '[StockList] Update stock_list.csv';
+  const body = 'KDJ_STOCK_UPDATE\n\n```json\n' + JSON.stringify(payload, null, 2) + '\n```\n';
+  const url = 'https://github.com/' + GITHUB_REPO + '/issues/new?labels=stock-update&title=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
+  window.open(url, '_blank');
+  showToast('已打开Issue页面，提交后会自动更新仓库', 'success');
+}
+
+function resetLocalStockChanges() {
+  try { localStorage.removeItem(STOCK_PENDING_KEY); } catch {}
+  stockPending = { add: [], delete: [] };
+  loadStocks();
+  showToast('已清除本地改动 Local changes cleared', 'success');
 }
 
 // Allow Enter key to submit add form
