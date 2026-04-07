@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-04-07,TSLA,特斯拉,Stock,68823279,Strong + Div,Long,45.9%,XGB:0.75|LGB:0.75|LR:0.49|N:341|Base:0.36,Doji (十字星),13.48,2.48,346.65,14.88,316.89,16,5546
 2026-04-06,COIN,Coinbase,Stock,7114926,Strong,Long,40.4%,XGB:0.64|LGB:0.68|LR:0.53|N:340|Base:0.31,Doji (十字星),38.36,51.48,174.79,11.36,152.07,22,3845
 2026-04-02,MU,美光科技,Stock,50933285,Strong,Long,42.8%,XGB:0.44|LGB:0.33|LR:0.57|N:339|Base:0.43,Doji (十字星),39.23,12.53,366.24,27.81,310.62,8,2929
 2026-04-01,MU,美光科技,Stock,73934765,Strong,Long,49.6%,XGB:0.65|LGB:0.58|LR:0.76|N:338|Base:0.43,Doji (十字星),25.53,13.32,367.85,27.82,312.21,8,2942
@@ -244,4 +245,3 @@
 2026-01-07,IWM,罗素2000指数ETF,Index ETF,33052026,Strong,Short,32.4%,XGB:0.24|LGB:0.21|LR:0.50|N:280|Base:0.34,Doji (十字星),104.27,88.75,255.48,3.56,262.6,70,17883
 2026-01-07,SOXL,半导体3倍做多ETF,Index ETF,65698487,Strong,Short,44.9%,XGB:0.82|LGB:0.86|LR:0.67|N:280|Base:0.33,Doji (十字星),93.72,95.94,52.29,3.35,58.99,74,3869
 2026-01-07,MU,美光科技,Stock,32781099,Strong,Short,31.4%,XGB:0.27|LGB:0.52|LR:0.20|N:280|Base:0.30,Doji (十字星),93.28,102.43,339.55,15.67,370.89,15,5093
-2026-01-06,PLTR,帕兰提尔,Stock,34838611,Strong,Long,39.5%,XGB:0.50|LGB:0.45|LR:0.45|N:279|Base:0.37,Doji (十字星),23.62,57.5,179.71,7.4,164.91,33,5930
