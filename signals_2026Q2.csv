@@ -1,4 +1,11 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-06-02,IWM,罗素2000指数ETF,Index ETF,16560279,Strong,Short,35.3%,XGB:0.44|LGB:0.39|LR:0.53|N:339|Base:0.32,Doji (十字星),99.49,106.01,291.66,4.65,300.96,53.0,15457.0
+2026-06-02,QQQ,纳斯达克100指数ETF,Index ETF,28237099,Strong,Short,22.6%,XGB:0.21|LGB:0.15|LR:0.10|N:341|Base:0.25,Doji (十字星),104.12,109.25,746.16,10.02,766.2,24.0,17907.0
+2026-06-02,SPY,标普500指数ETF,Index ETF,26951269,Strong + Div,Short,13.1%,XGB:0.01|LGB:0.01|LR:0.04|N:341|Base:0.18,"Doji (十字星), Doji (十字星)",104.34,109.28,759.57,6.55,772.67,38.0,28863.0
+2026-06-02,AMD,超威半导体,Stock,22885826,Strong + Div,Short,42.7%,XGB:0.78|LGB:0.66|LR:0.47|N:341|Base:0.32,Hanging Man (吊颈线),98.44,106.56,521.54,25.98,573.5,9.0,4693.0
+2026-06-02,HOOD,罗宾汉,Stock,26280303,Strong,Short,38.7%,XGB:0.49|LGB:0.54|LR:0.43|N:341|Base:0.34,"Hanging Man (吊颈线), Doji (十字星)",93.89,91.5,88.16,5.12,98.4,48.0,4231.0
+2026-06-02,MU,美光科技,Stock,46275666,Strong + Div,Short,26.7%,XGB:0.16|LGB:0.22|LR:0.16|N:341|Base:0.30,Hanging Man (吊颈线),106.9,104.32,1064.1,57.54,1179.18,4.0,4256.0
+2026-06-02,PLTR,帕兰提尔,Stock,42489927,Strong,Short,39.2%,XGB:0.43|LGB:0.49|LR:0.61|N:341|Base:0.35,Doji (十字星),80.23,83.43,152.17,6.86,165.89,36.0,5478.0
 2026-06-01,IWM,罗素2000指数ETF,Index ETF,22465015,Strong,Short,31.7%,XGB:0.35|LGB:0.20|LR:0.49|N:338|Base:0.32,"Doji (十字星), Doji (十字星), Doji (十字星), Doji (十字星)",96.47,101.19,288.98,4.74,298.46,52.0,15026.0
 2026-06-01,QQQ,纳斯达克100指数ETF,Index ETF,31432122,Strong + Div,Short,19.5%,XGB:0.07|LGB:0.04|LR:0.09|N:340|Base:0.25,Doji (十字星),101.11,108.03,742.74,10.24,763.22,24.0,17825.0
 2026-06-01,SOXL,半导体3倍做多ETF,Index ETF,36693578,Strong + Div,Short,31.7%,XGB:0.38|LGB:0.37|LR:0.19|N:338|Base:0.31,Dark Cloud Cover (乌云盖顶),89.59,98.12,227.03,20.85,268.73,11.0,2497.0
