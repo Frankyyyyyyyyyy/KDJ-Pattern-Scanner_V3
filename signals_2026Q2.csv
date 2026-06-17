@@ -1,4 +1,10 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-06-16,IWM,罗素2000指数ETF,Index ETF,23345642,Strong,Short,34.1%,XGB:0.25|LGB:0.13|LR:0.50|N:339|Base:0.32,"Doji (十字星), Doji (十字星)",82.8,84.56,292.08,5.96,304.0,41.0,11975.0
+2026-06-16,SPY,标普500指数ETF,Index ETF,61314537,Strong,Short,18.5%,XGB:0.08|LGB:0.11|LR:0.38|N:341|Base:0.20,"Doji (十字星), Doji (十字星)",84.95,82.1,750.33,9.64,769.61,25.0,18758.0
+2026-06-16,HOOD,罗宾汉,Stock,31425516,Strong,Short,34.6%,XGB:0.35|LGB:0.35|LR:0.43|N:341|Base:0.34,Doji (十字星),89.23,96.68,96.71,6.11,108.93,40.0,3868.0
+2026-06-16,MU,美光科技,Stock,43671087,Strong,Short,25.4%,XGB:0.17|LGB:0.17|LR:0.09|N:341|Base:0.30,Bearish Engulfing (看跌吞没),76.97,85.57,1020.76,77.64,1176.04,3.0,3062.0
+2026-06-16,MSFT,微软,Stock,31182390,Strong,Long,31.3%,XGB:0.07|LGB:0.11|LR:0.45|N:341|Base:0.32,"Doji (十字星), Doji (十字星), Doji (十字星)",19.6,8.77,393.83,11.87,370.09,21.0,8270.0
+2026-06-16,PLTR,帕兰提尔,Stock,29119561,Strong,Long,30.1%,XGB:0.15|LGB:0.22|LR:0.35|N:341|Base:0.34,"Doji (十字星), Hammer (锤子线)",27.07,9.28,133.25,6.42,120.41,38.0,5063.0
 2026-06-15,IWM,罗素2000指数ETF,Index ETF,23642851,Strong + Div,Short,34.4%,XGB:0.23|LGB:0.12|LR:0.53|N:338|Base:0.33,"Doji (十字星), Doji (十字星)",88.99,91.79,294.64,6.02,306.68,41.0,12080.0
 2026-06-15,GOOGL,谷歌,Stock,27424864,Strong,Short,33.0%,XGB:0.13|LGB:0.13|LR:0.44|N:340|Base:0.34,Doji (十字星),83.34,42.11,369.35,10.86,391.07,23.0,8495.0
 2026-06-15,HOOD,罗宾汉,Stock,36345695,Strong + Div,Short,33.3%,XGB:0.31|LGB:0.25|LR:0.49|N:340|Base:0.34,Doji (十字星),94.46,102.36,98.12,6.02,110.16,41.0,4022.0
