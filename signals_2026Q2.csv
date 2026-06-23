@@ -1,4 +1,13 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-06-23,IWM,罗素2000指数ETF,Index ETF,26360368,Strong,Short,31.1%,XGB:0.24|LGB:0.27|LR:0.54|N:338|Base:0.31,"Doji (十字星), Doji (十字星), Doji (十字星)",87.99,90.29,295.32,5.87,307.06,42.0,12403.0
+2026-06-23,SOXL,半导体3倍做多ETF,Index ETF,66955310,Strong,Short,28.7%,XGB:0.28|LGB:0.22|LR:0.26|N:338|Base:0.30,"Doji (十字星), Shooting Star (射击之星)",68.84,71.0,231.42,38.11,307.64,6.0,1388.0
+2026-06-23,CRWV,,Stock,25112072,Strong,Short,35.8%,XGB:0.43|LGB:0.47|LR:0.56|N:276|Base:0.32,"Shooting Star (射击之星), Doji (十字星)",66.67,28.64,105.72,9.0,123.72,27.0,2854.0
+2026-06-23,HOOD,罗宾汉,Stock,40410126,Strong,Short,33.0%,XGB:0.29|LGB:0.31|LR:0.40|N:340|Base:0.34,Doji (十字星),75.44,95.94,103.25,6.58,116.41,37.0,3820.0
+2026-06-23,MU,美光科技,Stock,58149691,Strong,Short,23.8%,XGB:0.12|LGB:0.07|LR:0.18|N:340|Base:0.29,"Bearish Engulfing (看跌吞没), Hanging Man (吊颈线)",74.25,84.01,1051.77,86.44,1224.65,2.0,2103.0
+2026-06-23,AMZN,亚马逊,Stock,56989747,Strong,Long,37.4%,XGB:0.43|LGB:0.51|LR:0.68|N:340|Base:0.31,Doji (十字星),12.83,-10.17,234.11,7.73,218.65,32.0,7491.0
+2026-06-23,CRCL,,Stock,8805817,Strong + Div,Long,35.4%,XGB:0.57|LGB:0.55|LR:0.70|N:226|Base:0.29,Doji (十字星),18.72,-13.82,75.68,7.48,60.72,33.0,2497.0
+2026-06-23,META,元宇宙(Facebook),Stock,12388472,Strong + Div,Long,31.6%,XGB:0.23|LGB:0.38|LR:0.38|N:340|Base:0.31,Doji (十字星),12.29,-7.49,562.2,19.26,523.68,12.0,6746.0
+2026-06-23,MSFT,微软,Stock,39415431,Strong,Long,33.0%,XGB:0.15|LGB:0.16|LR:0.50|N:340|Base:0.32,"Doji (十字星), Doji (十字星)",10.31,-9.82,373.94,11.94,350.06,20.0,7478.0
 2026-06-22,IWM,罗素2000指数ETF,Index ETF,22330405,Strong,Short,36.4%,XGB:0.46|LGB:0.48|LR:0.56|N:337|Base:0.31,Doji (十字星),96.92,97.92,298.18,5.88,309.94,42.0,12523.0
 2026-06-22,QQQ,纳斯达克100指数ETF,Index ETF,41264194,Strong,Short,30.7%,XGB:0.13|LGB:0.13|LR:0.59|N:339|Base:0.27,"Doji (十字星), Doji (十字星)",97.88,89.81,737.95,15.45,768.85,16.0,11807.0
 2026-06-22,SOXL,半导体3倍做多ETF,Index ETF,35468358,Strong,Short,31.8%,XGB:0.31|LGB:0.41|LR:0.38|N:337|Base:0.30,Doji (十字星),107.1,98.24,300.77,35.06,370.89,7.0,2105.0
