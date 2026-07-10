@@ -1,4 +1,7 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-07-10,AAPL,苹果,Stock,32466135,Strong,Short,33.6%,XGB:0.51|LGB:0.31|LR:0.57|N:341|Base:0.29,Doji (十字星),110.72,84.1,315.32,8.09,331.5,30,9459
+2026-07-10,HOOD,罗宾汉,Stock,25645970,Strong,Short,33.5%,XGB:0.33|LGB:0.30|LR:0.41|N:341|Base:0.33,Bearish Engulfing (看跌吞没),74.2,90.53,111.97,6.89,125.75,36,4030
+2026-07-10,CRCL,,Stock,35158305,Strong,Long,29.1%,XGB:0.21|LGB:0.31|LR:0.47|N:237|Base:0.29,Doji (十字星),25.02,-6.57,66.14,6.87,52.4,36,2381
 2026-07-09,HOOD,罗宾汉,Stock,18646564,Strong,Short,32.4%,XGB:0.31|LGB:0.21|LR:0.47|N:340|Base:0.34,Doji (十字星),88.18,95.75,115.11,6.61,128.33,37,4259
 2026-07-09,AMD,超威半导体,Stock,26670194,Strong,Long,39.2%,XGB:0.28|LGB:0.43|LR:0.51|N:340|Base:0.39,Doji (十字星),39.32,76.5,546.72,37.45,471.82,6,3280
 2026-07-09,CRCL,,Stock,9260733,Strong,Long,31.2%,XGB:0.39|LGB:0.36|LR:0.55|N:236|Base:0.28,Doji (十字星),11.5,-9.68,63.01,6.64,49.73,37,2331
@@ -332,4 +335,3 @@
 2026-04-13,AMD,超威半导体,Stock,21577252,Strong + Div,Short,37.5%,XGB:0.39|LGB:0.67|LR:0.52|N:280|Base:0.32,Doji (十字星),105.94,108.68,246.83,9.87,266.57,25,6170
 2026-04-13,TSLA,特斯拉,Stock,52761941,Strong,Long,38.6%,XGB:0.44|LGB:0.47|LR:0.41|N:280|Base:0.36,"Doji (十字星), Doji (十字星), Doji (十字星), Doji (十字星)",28.99,12.28,352.42,14.26,323.9,17,5991
 2026-04-10,TSLA,特斯拉,Stock,50310339,Strong,Long,37.8%,XGB:0.47|LGB:0.38|LR:0.41|N:279|Base:0.36,"Doji (十字星), Doji (十字星), Doji (十字星)",19.03,4.29,348.95,14.76,319.43,16,5583
-2026-04-09,TSLA,特斯拉,Stock,61134264,Strong,Long,37.2%,XGB:0.46|LGB:0.32|LR:0.44|N:278|Base:0.36,"Doji (十字星), Doji (十字星)",11.45,1.67,345.62,15.3,315.02,16,5529
