@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-08-18,PLTR,帕兰提尔,Stock,27979382,Strong,Short,40.1%,XGB:0.31|LGB:0.32|LR:0.64|N:343|Base:0.36,Doji (十字星),69.76,107.76,171.54,7.8,187.14,32.0,5489.0
 2026-08-17,QQQ,纳斯达克100指数ETF,Index ETF,26102182,Strong,Short,24.1%,XGB:0.29|LGB:0.11|LR:0.35|N:342|Base:0.25,"Doji (十字星), Doji (十字星)",88.93,86.26,729.87,12.1,754.07,20.0,14597.0
 2026-08-17,CRWV,,Stock,31890805,Strong,Short,30.9%,XGB:0.23|LGB:0.32|LR:0.37|N:314|Base:0.32,"Shooting Star (射击之星), Hanging Man (吊颈线)",62.99,86.8,106.0,8.55,123.1,29.0,3074.0
 2026-08-17,NVDA,英伟达,Stock,81442206,Strong,Short,32.4%,XGB:0.17|LGB:0.12|LR:0.57|N:342|Base:0.29,"Doji (十字星), Doji (十字星), Doji (十字星)",83.28,109.81,225.01,6.63,238.27,37.0,8325.0
