@@ -1,4 +1,5 @@
 Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-09-09,NO_SIGNAL,无信号,Info,0,No Signal,无信号,,,无信号,,,,,,,
 2026-09-08,NO_SIGNAL,无信号,Info,0,No Signal,无信号,,,无信号,,,,,,,
 2026-09-04,NO_SIGNAL,无信号,Info,0,No Signal,无信号,,,无信号,,,,,,,
 2026-09-03,NO_SIGNAL,无信号,Info,0,No Signal,无信号,,,无信号,,,,,,,
@@ -548,7 +549,7 @@ Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交�
 2026-06-12,COIN,Coinbase,Stock,6475902,Strong,Long,32.0%,XGB:0.37|LGB:0.38|LR:0.45|N:284|Base:0.30,"Doji (十字星), Doji (十字星)",37.86,4.11,159.78,11.61,136.56,21.0,3355.0
 2026-06-11,COIN,Coinbase,Stock,6879536,Strong,Long,39.3%,XGB:0.68|LGB:0.74|LR:0.48|N:283|Base:0.30,Doji (十字星),26.52,4.79,160.43,11.73,136.97,21.0,3369.0
 2026-06-10,COIN,Coinbase,Stock,6298618,Strong,Long,34.6%,XGB:0.43|LGB:0.55|LR:0.50|N:282|Base:0.29,Doji (十字星),13.75,-1.96,153.97,11.92,130.13,20.0,3079.0
-2026-06-08,COIN,Coinbase,Stock,8817744,Strong,Long,35.7%,XGB:0.50|LGB:0.61|LR:0.42|N:280|Base:0.30,Doji (十字星),19.82,6.54,162.11,11.87,138.37,21.0,3404.0
+2026-06-08,COIN,Coinbase,Stock,8817744,Strong,Long,29.3%,XGB:0.18|LGB:0.38|LR:0.40|N:326|Base:0.29,Doji (十字星),19.82,6.54,162.11,11.87,138.37,21.0,3404.0
 2026-06-04,COIN,Coinbase,Stock,8312755,Strong,Long,29.5%,XGB:0.09|LGB:0.09|LR:0.47|N:324|Base:0.29,Doji (十字星),2.19,10.53,164.13,11.53,141.07,21.0,3446.0
 2026-04-06,COIN,Coinbase,Stock,7114926,Strong,Long,40.3%,XGB:0.78|LGB:0.71|LR:0.53|N:282|Base:0.30,Doji (十字星),38.36,51.48,174.79,11.36,152.07,22.0,3845.0
 2026-01-26,COIN,Coinbase,Stock,7077472,Strong + Div,Long,32.3%,XGB:0.25|LGB:0.43|LR:0.38|N:297|Base:0.31,Doji (十字星),-9.4,1.54,213.48,10.91,191.66,22.0,4696.0

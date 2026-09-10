@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-09-09,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-09-08,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-09-04,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-09-03,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
@@ -235,5 +236,3 @@
 2026-06-10,PLTR,帕兰提尔,Stock,29150613,Strong,Long,33.7%,XGB:0.36|LGB:0.31|LR:0.30|N:282|Base:0.34,Doji (十字星),-8.63,18.97,130.21,6.82,116.57,36,4687
 2026-06-09,CRCL,,Stock,13245062,Strong,Long,33.5%,XGB:0.39|LGB:0.57|LR:0.59|N:217|Base:0.29,Doji (十字星),1.46,-2.79,81.1,9.1,62.9,27,2189
 2026-06-09,CRWV,,Stock,24193797,Strong,Long,32.8%,XGB:0.25|LGB:0.37|LR:0.54|N:267|Base:0.32,Doji (十字星),-0.77,11.06,98.45,9.17,80.11,27,2658
-2026-06-08,COIN,Coinbase,Stock,8817744,Strong,Long,35.7%,XGB:0.50|LGB:0.61|LR:0.42|N:280|Base:0.30,Doji (十字星),19.82,6.54,162.11,11.87,138.37,21,3404
-2026-06-08,CRWV,,Stock,23333216,Strong,Long,41.6%,XGB:0.82|LGB:0.67|LR:0.56|N:266|Base:0.32,Doji (十字星),4.47,16.16,102.37,8.97,84.43,27,2763
