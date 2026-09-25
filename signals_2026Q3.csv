@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-09-24,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-09-23,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-09-22,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-09-21,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
@@ -185,12 +186,3 @@
 2026-06-24,META,元宇宙(Facebook),Stock,13155272,Strong + Div,Long,33.4%,XGB:0.31|LGB:0.46|LR:0.36|N:281|Base:0.32,Doji (十字星),2.29,-9.41,557.67,18.85,519.97,13,7249
 2026-06-24,NVDA,英伟达,Stock,149005898,Strong + Div,Long,46.3%,XGB:0.76|LGB:0.64|LR:0.49|N:281|Base:0.40,Doji (十字星),15.09,5.44,199.0,7.39,184.22,33,6567
 2026-06-24,PLTR,帕兰提尔,Stock,45608183,Strong + Div,Long,36.2%,XGB:0.36|LGB:0.56|LR:0.33|N:281|Base:0.34,Doji (十字星),-1.25,-7.86,113.5,6.45,100.6,38,4313
-2026-06-23,IWM,罗素2000指数ETF,Index ETF,26360368,Strong,Short,31.4%,XGB:0.08|LGB:0.04|LR:0.65|N:278|Base:0.28,"Doji (十字星), Doji (十字星), Doji (十字星)",87.99,90.29,295.32,5.87,307.06,42,12403
-2026-06-23,SOXL,半导体3倍做多ETF,Index ETF,66955310,Strong,Short,27.3%,XGB:0.14|LGB:0.22|LR:0.38|N:278|Base:0.29,"Doji (十字星), Shooting Star (射击之星)",68.84,71.0,231.42,38.11,307.64,6,1388
-2026-06-23,CRWV,,Stock,25112072,Strong,Short,35.8%,XGB:0.43|LGB:0.47|LR:0.56|N:276|Base:0.32,"Shooting Star (射击之星), Doji (十字星)",66.67,28.64,105.72,9.0,123.72,27,2854
-2026-06-23,HOOD,罗宾汉,Stock,40410126,Strong,Short,30.7%,XGB:0.16|LGB:0.19|LR:0.32|N:280|Base:0.34,Doji (十字星),75.44,95.94,103.25,6.58,116.41,37,3820
-2026-06-23,MU,美光科技,Stock,58149691,Strong,Short,25.4%,XGB:0.17|LGB:0.16|LR:0.20|N:280|Base:0.28,"Bearish Engulfing (看跌吞没), Hanging Man (吊颈线)",74.25,84.01,1051.77,86.44,1224.65,2,2103
-2026-06-23,AMZN,亚马逊,Stock,56989747,Strong,Long,42.9%,XGB:0.67|LGB:0.78|LR:0.64|N:280|Base:0.33,Doji (十字星),12.83,-10.17,234.11,7.73,218.65,32,7491
-2026-06-23,CRCL,,Stock,8805817,Strong + Div,Long,35.4%,XGB:0.57|LGB:0.55|LR:0.70|N:226|Base:0.29,Doji (十字星),18.72,-13.82,75.68,7.48,60.72,33,2497
-2026-06-23,META,元宇宙(Facebook),Stock,12388472,Strong + Div,Long,34.7%,XGB:0.46|LGB:0.42|LR:0.39|N:280|Base:0.32,Doji (十字星),12.29,-7.49,562.2,19.26,523.68,12,6746
-2026-06-23,MSFT,微软,Stock,39415431,Strong,Long,27.2%,XGB:0.09|LGB:0.08|LR:0.30|N:280|Base:0.32,"Doji (十字星), Doji (十字星)",10.31,-9.82,373.94,11.94,350.06,20,7478
