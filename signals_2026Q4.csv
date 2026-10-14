@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-10-13,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-10-12,MSFT,微软,Stock,18292000,Strong,Short,26.3%,XGB:0.09|LGB:0.07|LR:0.14|N:325|Base:0.33,Doji (十字星),95.38,108.03,541.15,11.41,563.97,21,11364
 2026-10-12,PLTR,帕兰提尔,Stock,24259200,Strong,Short,43.6%,XGB:0.61|LGB:0.75|LR:0.41|N:325|Base:0.36,Doji (十字星),90.76,107.16,209.0,7.11,223.22,35,7315
 2026-10-12,TSLA,特斯拉,Stock,20164200,Strong,Short,40.3%,XGB:0.29|LGB:0.44|LR:0.67|N:325|Base:0.34,"Doji (十字星), Doji (十字星), Doji (十字星)",83.34,105.28,378.03,11.77,401.57,21,7938
