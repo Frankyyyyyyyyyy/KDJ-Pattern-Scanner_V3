@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-10-20,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-10-19,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-10-16,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-10-15,AAPL,苹果,Stock,39678300,Strong,Short,27.4%,XGB:0.10|LGB:0.09|LR:0.52|N:323|Base:0.24,Doji (十字星),73.33,90.47,342.0,7.25,356.5,34,11628
