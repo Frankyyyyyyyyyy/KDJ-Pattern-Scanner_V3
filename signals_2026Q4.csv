@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-10-21,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-10-20,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-10-19,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
 2026-10-16,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
@@ -167,9 +168,3 @@
 2026-07-21,AAPL,苹果,Stock,40800631,Strong,Short,24.3%,XGB:0.15|LGB:0.16|LR:0.39|N:280|Base:0.26,Doji (十字星),71.82,96.93,327.74,8.2,344.14,30,9832
 2026-07-21,GOOGL,谷歌,Stock,22327729,Strong,Long,41.1%,XGB:0.47|LGB:0.34|LR:0.69|N:280|Base:0.39,Doji (十字星),9.53,6.59,347.15,11.19,324.77,22,7637
 2026-07-21,TSLA,特斯拉,Stock,31140392,Strong,Long,40.1%,XGB:0.54|LGB:0.45|LR:0.69|N:280|Base:0.35,Doji (十字星),5.27,5.37,378.93,16.72,345.49,14,5305
-2026-07-20,AAPL,苹果,Stock,51014085,Strong,Short,22.6%,XGB:0.10|LGB:0.11|LR:0.29|N:279|Base:0.25,Doji (十字星),79.15,95.47,326.59,8.26,343.11,30,9797
-2026-07-20,META,元宇宙(Facebook),Stock,9924164,Strong,Short,43.5%,XGB:0.53|LGB:0.64|LR:0.47|N:279|Base:0.39,Doji (十字星),62.67,86.48,645.85,25.69,697.23,9,5812
-2026-07-20,QQQ,纳斯达克100指数ETF,Index ETF,28995795,Strong,Long,22.6%,XGB:0.07|LGB:0.10|LR:0.38|N:279|Base:0.25,Doji (十字星),15.99,0.66,696.06,14.93,666.2,16,11136
-2026-07-20,AVGO,,Stock,14214613,Strong,Long,34.5%,XGB:0.19|LGB:0.16|LR:0.41|N:279|Base:0.39,Doji (十字星),28.84,2.26,378.16,17.02,344.12,14,5294
-2026-07-20,COIN,Coinbase,Stock,5193164,Strong,Long,29.8%,XGB:0.23|LGB:0.29|LR:0.50|N:279|Base:0.29,Hammer (锤子线),37.08,36.15,160.43,9.51,141.41,26,4171
-2026-07-20,GOOGL,谷歌,Stock,24606836,Strong,Long,44.6%,XGB:0.40|LGB:0.37|LR:0.73|N:279|Base:0.39,"Bullish Engulfing (看涨吞没), Doji (十字星), Doji (十字星)",16.59,12.95,351.99,11.66,328.67,21,7391
