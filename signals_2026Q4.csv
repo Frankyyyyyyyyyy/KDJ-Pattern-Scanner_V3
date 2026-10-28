@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-10-27,AVGO,,Stock,25526200,Strong,Long,43.7%,XGB:0.66|LGB:0.60|LR:0.55|N:320|Base:0.37,Doji (十字星),16.24,9.55,342.33,13.18,315.97,18.0,6161.0
 2026-10-26,AAPL,苹果,Stock,42667300,Strong + Div,Short,27.8%,XGB:0.05|LGB:0.05|LR:0.58|N:319|Base:0.24,"Doji (十字星), Doji (十字星)",75.49,97.87,343.91,7.16,358.23,34.0,11692.0
 2026-10-26,AMZN,亚马逊,Stock,32613300,Strong,Long,41.6%,XGB:0.56|LGB:0.71|LR:0.55|N:319|Base:0.34,Doji (十字星),16.72,16.87,249.09,6.72,235.65,37.0,9216.0
 2026-10-23,NO_SIGNAL,无信号,Info,0,No Signal,无信号,N/A,N/A,无信号,,,,,,,
