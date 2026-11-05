@@ -1,4 +1,9 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-11-04,QQQ,纳斯达克100指数ETF,Index ETF,62127700,Strong,Long,38.9%,XGB:0.64|LGB:0.82|LR:0.82|N:321|Base:0.25,"Doji (十字星), Doji (十字星)",10.45,6.35,691.95,13.14,665.67,19.0,13147.0
+2026-11-04,AMD,超威半导体,Stock,50826900,Strong,Long,39.7%,XGB:0.42|LGB:0.37|LR:0.56|N:321|Base:0.38,"Inverted Hammer (倒锤子线), Doji (十字星)",10.43,19.85,488.78,33.2,422.38,7.0,3421.0
+2026-11-04,AVGO,,Stock,23824200,Strong,Long,39.6%,XGB:0.52|LGB:0.38|LR:0.59|N:321|Base:0.36,Doji (十字星),18.45,-1.68,325.48,13.61,298.26,18.0,5858.0
+2026-11-04,GOOGL,谷歌,Stock,51435300,Strong + AI_Bull,Long,52.3%,XGB:0.90|LGB:0.81|LR:0.77|N:321|Base:0.40,Doji (十字星),2.6,6.77,288.93,11.56,265.81,21.0,6067.0
+2026-11-04,HOOD,罗宾汉,Stock,20098900,Strong,Long,32.0%,XGB:0.19|LGB:0.23|LR:0.49|N:319|Base:0.34,Doji (十字星),14.45,6.91,87.41,5.75,75.91,43.0,3758.0
 2026-11-03,TSLA,特斯拉,Stock,26213900,Strong,Short,44.6%,XGB:0.69|LGB:0.68|LR:0.58|N:320|Base:0.36,Doji (十字星),79.03,99.0,398.5,13.47,425.44,18.0,7173.0
 2026-11-03,QQQ,纳斯达克100指数ETF,Index ETF,36132900,Strong,Long,42.4%,XGB:0.83|LGB:0.90|LR:0.86|N:320|Base:0.25,Doji (十字星),-3.57,0.06,685.28,12.91,659.46,19.0,13020.0
 2026-11-03,SOXL,半导体3倍做多ETF,Index ETF,133427000,Strong,Long,48.2%,XGB:0.61|LGB:0.77|LR:0.51|N:317|Base:0.41,Inverted Hammer (倒锤子线),2.68,3.94,73.12,14.84,43.44,16.0,1169.0
@@ -164,7 +169,3 @@
 2026-08-05,COIN,Coinbase,Stock,6240113,Strong,Long,31.7%,XGB:0.33|LGB:0.46|LR:0.41|N:281|Base:0.29,"Inverted Hammer (倒锤子线), Doji (十字星)",31.3,22.22,149.89,10.18,129.53,24.0,3597.0
 2026-08-04,AMZN,亚马逊,Stock,69522809,Strong,Short,34.7%,XGB:0.48|LGB:0.31|LR:0.54|N:280|Base:0.32,Doji (十字星),108.67,90.25,277.42,9.79,297.0,25.0,6935.0
 2026-08-04,COIN,Coinbase,Stock,7057350,Strong,Long,30.7%,XGB:0.36|LGB:0.33|LR:0.42|N:280|Base:0.29,Inverted Hammer (倒锤子线),26.45,23.76,150.73,10.48,129.77,23.0,3466.0
-2026-08-03,COIN,Coinbase,Stock,9000773,Strong,Long,25.5%,XGB:0.10|LGB:0.14|LR:0.33|N:279|Base:0.29,Inverted Hammer (倒锤子线),13.63,15.99,146.5,10.72,125.06,23.0,3369.0
-2026-08-03,CRCL,,Stock,15819689,Strong,Long,40.0%,XGB:0.83|LGB:0.73|LR:0.66|N:253|Base:0.29,Doji (十字星),18.75,4.4,60.35,5.33,49.69,46.0,2776.0
-2026-08-03,HOOD,罗宾汉,Stock,19327655,Strong,Long,40.1%,XGB:0.57|LGB:0.57|LR:0.60|N:279|Base:0.34,"Doji (十字星), Doji (十字星)",18.93,13.24,90.34,6.47,77.4,38.0,3432.0
-2026-08-03,TSLA,特斯拉,Stock,37162483,Strong,Long,42.8%,XGB:0.70|LGB:0.67|LR:0.54|N:279|Base:0.35,"Doji (十字星), Doji (十字星)",27.51,3.55,322.08,16.64,288.8,15.0,4831.0
