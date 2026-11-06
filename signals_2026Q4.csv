@@ -1,4 +1,5 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-11-05,GOOGL,谷歌,Stock,53043900,Strong,Long,47.0%,XGB:0.69|LGB:0.70|LR:0.51|N:322|Base:0.39,Doji (十字星),5.91,0.77,282.57,12.06,258.45,20.0,5651.0
 2026-11-04,QQQ,纳斯达克100指数ETF,Index ETF,62127700,Strong,Long,38.9%,XGB:0.64|LGB:0.82|LR:0.82|N:321|Base:0.25,"Doji (十字星), Doji (十字星)",10.45,6.35,691.95,13.14,665.67,19.0,13147.0
 2026-11-04,AMD,超威半导体,Stock,50826900,Strong,Long,39.7%,XGB:0.42|LGB:0.37|LR:0.56|N:321|Base:0.38,"Inverted Hammer (倒锤子线), Doji (十字星)",10.43,19.85,488.78,33.2,422.38,7.0,3421.0
 2026-11-04,AVGO,,Stock,23824200,Strong,Long,39.6%,XGB:0.52|LGB:0.38|LR:0.59|N:321|Base:0.36,Doji (十字星),18.45,-1.68,325.48,13.61,298.26,18.0,5858.0
@@ -167,5 +168,3 @@
 2026-08-06,COIN,Coinbase,Stock,5810322,Strong + Div,Long,27.8%,XGB:0.18|LGB:0.25|LR:0.40|N:282|Base:0.29,Inverted Hammer (倒锤子线),22.5,13.99,145.41,9.85,125.71,25.0,3635.0
 2026-08-05,AMZN,亚马逊,Stock,42366662,Strong,Short,37.4%,XGB:0.35|LGB:0.26|LR:0.66|N:281|Base:0.32,Doji (十字星),101.2,84.23,272.65,9.95,292.55,25.0,6816.0
 2026-08-05,COIN,Coinbase,Stock,6240113,Strong,Long,31.7%,XGB:0.33|LGB:0.46|LR:0.41|N:281|Base:0.29,"Inverted Hammer (倒锤子线), Doji (十字星)",31.3,22.22,149.89,10.18,129.53,24.0,3597.0
-2026-08-04,AMZN,亚马逊,Stock,69522809,Strong,Short,34.7%,XGB:0.48|LGB:0.31|LR:0.54|N:280|Base:0.32,Doji (十字星),108.67,90.25,277.42,9.79,297.0,25.0,6935.0
-2026-08-04,COIN,Coinbase,Stock,7057350,Strong,Long,30.7%,XGB:0.36|LGB:0.33|LR:0.42|N:280|Base:0.29,Inverted Hammer (倒锤子线),26.45,23.76,150.73,10.48,129.77,23.0,3466.0
