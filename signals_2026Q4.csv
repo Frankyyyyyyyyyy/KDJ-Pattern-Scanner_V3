@@ -1,4 +1,7 @@
 ﻿Date (日期),Ticker (股票代码),Name (名称),Type (类型),Volume (成交量),Signal Strength,Direction (方向),ML_Prob,ML_Detail,Pattern (形态),Daily_J,Weekly_J,Price,ATR,Stop_Loss (止损),Suggested_Shares (建议股数),Position_Size (建议仓位$)
+2026-11-12,META,元宇宙(Facebook),Stock,10282600,Strong,Short,39.2%,XGB:0.34|LGB:0.41|LR:0.46|N:318|Base:0.39,Bearish Engulfing (看跌吞没),83.31,36.45,623.61,26.59,676.79,9.0,5612.0
+2026-11-12,COIN,Coinbase,Stock,6331000,Strong + Div,Long,30.2%,XGB:0.34|LGB:0.27|LR:0.50|N:318|Base:0.29,Doji (十字星),5.22,-11.47,130.67,10.94,108.79,22.0,2874.0
+2026-11-12,CRCL,,Stock,7384600,Strong + Div,Long,34.2%,XGB:0.50|LGB:0.42|LR:0.50|N:297|Base:0.30,Inverted Hammer (倒锤子线),5.19,-1.75,63.82,5.3,53.22,47.0,2999.0
 2026-11-11,META,元宇宙(Facebook),Stock,15533900,Strong,Short,37.5%,XGB:0.13|LGB:0.18|LR:0.46|N:317|Base:0.39,Bearish Engulfing (看跌吞没),87.54,38.32,628.77,27.76,684.29,9.0,5658.0
 2026-11-11,NVDA,英伟达,Stock,313417400,Strong,Long,37.6%,XGB:0.41|LGB:0.37|LR:0.32|N:321|Base:0.38,Doji (十字星),15.23,-7.31,173.73,8.87,155.99,28.0,4864.0
 2026-11-10,AAPL,苹果,Stock,29718200,Strong,Short,22.7%,XGB:0.11|LGB:0.11|LR:0.37|N:320|Base:0.25,Dark Cloud Cover (乌云盖顶),80.79,90.49,348.51,9.08,366.67,27.0,9409.0
@@ -160,9 +163,3 @@
 2026-08-12,HOOD,罗宾汉,Stock,12521042,Strong + Div,Short,47.7%,XGB:0.90|LGB:0.88|LR:0.70|N:281|Base:0.35,"Doji (十字星), Doji (十字星)",104.22,17.05,94.91,5.27,105.45,47.0,4460.0
 2026-08-12,META,元宇宙(Facebook),Stock,15847495,Strong,Short,36.8%,XGB:0.26|LGB:0.27|LR:0.26|N:281|Base:0.41,"Doji (十字星), Doji (十字星), Bearish Engulfing (看跌吞没)",74.95,32.13,578.85,22.72,624.29,11.0,6367.0
 2026-08-12,MSFT,微软,Stock,27275247,Strong,Short,31.2%,XGB:0.14|LGB:0.09|LR:0.31|N:281|Base:0.37,"Doji (十字星), Doji (十字星)",75.13,106.16,492.43,14.76,521.95,16.0,7878.0
-2026-08-11,IWM,罗素2000指数ETF,Index ETF,14696271,Strong,Short,25.3%,XGB:0.06|LGB:0.05|LR:0.37|N:278|Base:0.26,"Doji (十字星), Doji (十字星), Doji (十字星), Doji (十字星)",94.58,83.64,300.99,4.13,309.25,60.0,18059.0
-2026-08-11,SPY,标普500指数ETF,Index ETF,36216318,Strong,Short,11.9%,XGB:0.01|LGB:0.00|LR:0.17|N:280|Base:0.15,"Doji (十字星), Doji (十字星), Doji (十字星), Doji (十字星)",96.71,89.51,770.56,8.15,786.86,30.0,23116.0
-2026-08-11,AMZN,亚马逊,Stock,29512425,Strong,Short,35.8%,XGB:0.23|LGB:0.29|LR:0.58|N:280|Base:0.33,Bearish Engulfing (看跌吞没),85.38,89.44,272.27,8.99,290.25,27.0,7351.0
-2026-08-11,AVGO,,Stock,12814188,Strong,Short,37.1%,XGB:0.35|LGB:0.53|LR:0.59|N:280|Base:0.34,"Doji (十字星), Doji (十字星)",81.41,89.58,416.08,16.08,448.24,15.0,6241.0
-2026-08-11,HOOD,罗宾汉,Stock,11666500,Strong,Short,38.8%,XGB:0.50|LGB:0.46|LR:0.62|N:280|Base:0.35,"Doji (十字星), Doji (十字星)",107.87,15.92,94.38,5.39,105.16,46.0,4341.0
-2026-08-11,MSFT,微软,Stock,22984523,Strong,Short,32.3%,XGB:0.22|LGB:0.13|LR:0.27|N:280|Base:0.37,"Doji (十字星), Doji (十字星)",95.54,111.54,503.81,14.95,533.71,16.0,8060.0
