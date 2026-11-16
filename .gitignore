@@ -16,3 +16,19 @@ nltk_data/
 
 # 本地临时输出（误放入仓库目录时避免被跟踪）
 us_market_output/
+
+# --- local secrets / tokens (never commit) ---
+.env
+.env.*
+!.env.example
+.scanner_run_token
+
+# --- runtime artifacts ---
+# Historically some logs/ and price_cache/*.csv were already tracked;
+# this prevents adding new ones. Do not git rm existing tracked files
+# unless you intentionally rewrite history.
+logs/
+*.log
+price_cache/*.csv
+!price_cache/.gitkeep
+_pages_site/

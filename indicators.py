@@ -3,7 +3,18 @@ import numpy as np
 from datetime import timedelta
 
 def calculate_kdj(df, period=9):
-    """Calculates K, D, J values."""
+    """Calculate K, D, J using the 9-3-3 style recursion used in this repo.
+
+    Warmup convention (explicit, default-compatible):
+      - Seed K=50, D=50.
+      - RSV is defined only after `period` bars (and is 50 when the high-low
+        range is zero). Until RSV is defined, K and D stay at the seed and are
+        not updated. Mid-series NaN/inf RSV also leaves K/D unchanged.
+      - On a clean series with no mid-NaN values, results match the previous
+        fillna(50) implementation, because a seed of 50 combined with RSV=50
+        does not move K/D.
+      - This is a project convention, not a claim of a unique market standard.
+    """
     df = df.copy()
     low_min = df['Low'].rolling(window=period).min()
     high_max = df['High'].rolling(window=period).max()
@@ -11,7 +22,7 @@ def calculate_kdj(df, period=9):
     denom = (high_max - low_min)
     rsv = (df['Close'] - low_min) / denom * 100
     rsv = rsv.mask(denom == 0, 50)
-    rsv = rsv.replace([np.inf, -np.inf], np.nan).fillna(50)
+    rsv = rsv.replace([np.inf, -np.inf], np.nan)
 
     k_list, d_list = [], []
     k, d = 50, 50

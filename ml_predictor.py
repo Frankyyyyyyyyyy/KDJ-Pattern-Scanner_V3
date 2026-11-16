@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import xgboost as xgb
-import lightgbm as lgb
 import os
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import roc_auc_score, log_loss
@@ -9,6 +7,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 import ta
 import logging
+
+from indicators import calculate_kdj
 
 logger = logging.getLogger(__name__)
 
@@ -135,9 +135,9 @@ def calculate_advanced_features(df):
     # 2. RSI Extremes (超买超卖): Distance from 50
     df['RSI_Dist'] = df['RSI'] - 50
     
-    # 3. KDJ J-Value Extremes
-    kdj = ta.momentum.StochasticOscillator(high=df['High'], low=df['Low'], close=df['Close'])
-    df['KDJ_J'] = 3 * kdj.stoch() - 2 * kdj.stoch_signal()
+    # 3. KDJ J-Value Extremes — same definition as the strategy indicator
+    kdj_df = calculate_kdj(df)
+    df['KDJ_J'] = kdj_df['J']
     df['J_Dist'] = df['KDJ_J'] - 50
 
     return df
@@ -152,11 +152,17 @@ def get_triple_barrier_labels(df, profit_take=0.03, stop_loss=0.015, horizon=10,
     lows = df['Low'].values
     
     for i in range(len(df)):
-        end_idx = min(i + horizon, len(df))
+        # Label is defined only when the full future window is observable
+        # (no truncated horizon labeled as 0).
+        if i + horizon >= len(df):
+            labels.append(np.nan)
+            continue
+
+        end_idx = i + horizon
         future_highs = highs[i+1:end_idx+1]
         future_lows = lows[i+1:end_idx+1]
-        
-        if len(future_highs) == 0:
+
+        if len(future_highs) < horizon:
             labels.append(np.nan)
             continue
             
@@ -193,6 +199,57 @@ def get_triple_barrier_labels(df, profit_take=0.03, stop_loss=0.015, horizon=10,
                 labels.append(0)
             
     return pd.Series(labels, index=df.index)
+
+
+def build_point_in_time_train_predict(df_input, start_date=None, end_date=None,
+                                      direction='Long', profit_take=0.03,
+                                      stop_loss=0.015, horizon=10):
+    """Build features, labels, and PIT train/predict frames without fitting models.
+
+    Used by training and by offline tests to verify:
+      - labels require a complete future horizon
+      - the prediction bar is excluded from training
+      - no row whose label would need data after end_date is kept
+    """
+    if df_input is None:
+        return None
+    df_input = df_input.copy().sort_index()
+    if start_date is not None:
+        df_input = df_input[df_input.index >= start_date]
+    if end_date is not None:
+        df_input = df_input[df_input.index <= end_date]
+
+    df_features = calculate_advanced_features(df_input)
+    df_features['Target'] = get_triple_barrier_labels(
+        df_features, profit_take=profit_take, stop_loss=stop_loss,
+        horizon=horizon, direction=direction,
+    )
+    feature_cols = [
+        'Log_Ret', 'ATR_Norm', 'BB_Width', 'BB_P', 'RSI', 'MACD', 'MACD_Diff',
+        'Stoch_K', 'ADX', 'OBV_ROC', 'MFI',
+        'Bias_20', 'RSI_Dist', 'J_Dist',
+    ]
+    valid_features = [c for c in feature_cols if c in df_features.columns]
+    train_df = df_features.dropna(subset=['Target'] + valid_features)
+    predict_candidates = df_features.dropna(subset=valid_features)
+    if predict_candidates.empty:
+        return {
+            'features': df_features,
+            'valid_features': valid_features,
+            'train_df': train_df,
+            'predict_row': predict_candidates,
+            'predict_idx': None,
+        }
+    predict_idx = predict_candidates.index[-1]
+    train_df = train_df[train_df.index < predict_idx]
+    return {
+        'features': df_features,
+        'valid_features': valid_features,
+        'train_df': train_df,
+        'predict_row': predict_candidates.tail(1),
+        'predict_idx': predict_idx,
+    }
+
 
 # ==========================================
 # 2. Ensemble Prediction System
@@ -234,6 +291,14 @@ def run_ensemble_prediction(ticker, start_date, end_date, df_input, direction='L
         valid_features = [c for c in feature_cols if c in df_features.columns]
         
         train_df = df_features.dropna(subset=['Target'] + valid_features)
+
+        # Point-in-time: never train on the prediction row or any later bar.
+        # end_date already clipped the frame; the last valid-feature row is the as-of bar.
+        predict_candidates = df_features.dropna(subset=valid_features)
+        if predict_candidates.empty:
+            return {}
+        predict_idx = predict_candidates.index[-1]
+        train_df = train_df[train_df.index < predict_idx]
         
         min_train = _env_int('ML_MIN_TRAIN_SAMPLES', 100)
         if len(train_df) < min_train:
@@ -279,11 +344,13 @@ def run_ensemble_prediction(ticker, start_date, end_date, df_input, direction='L
             'scale_pos_weight': scale_pos_weight,
         }
 
+        import xgboost as xgb
         xgb_model = xgb.XGBClassifier(**xgb_params)
         xgb_model.fit(X_train, y_train)
         results['XGB'] = xgb_model.predict_proba(X_predict)[0][1]
 
         # --- Model 2: LightGBM ---
+        import lightgbm as lgb
         lgb_model = lgb.LGBMClassifier(
             n_estimators=150, max_depth=3, learning_rate=0.05, 
             subsample=0.8, colsample_bytree=0.8, random_state=42, 

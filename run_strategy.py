@@ -9,7 +9,7 @@ from utils import is_trading_day, manage_csv_archive, get_now_et, get_last_compl
 from data import update_stock_metadata, update_price_cache, load_cached_data, validate_ohlc
 from indicators import calculate_kdj, calculate_atr, get_weekly_kdj_snapshot
 from patterns import identify_patterns
-from filters import check_j_filter, check_prior_trend, check_divergence, check_pattern_filter
+from filters import check_j_filter, check_prior_trend, check_divergence, check_pattern_filter, check_index_filter, check_ma_cross_filter
 from ml_predictor import train_and_predict
 
 # ==========================================
@@ -83,11 +83,20 @@ def process_ticker(ticker, ticker_map, ticker_type_map, df, df_index, scan_start
             idx_bearish = []
             idx_bullish = []
 
+            idx_j_prev = None
             if date in df_index.index:
                 idx_row = df_index.loc[date]
                 idx_daily_j = idx_row['J']
                 idx_bearish = idx_row['Bearish_Patterns']
                 idx_bullish = idx_row['Bullish_Patterns']
+                idx_loc = df_index.index.get_loc(date)
+                if not isinstance(idx_loc, int):
+                    try:
+                        idx_loc = int(idx_loc[0]) if hasattr(idx_loc, '__getitem__') else None
+                    except Exception:
+                        idx_loc = None
+                if isinstance(idx_loc, int) and idx_loc > 0:
+                    idx_j_prev = df_index.iloc[int(idx_loc) - 1]['J']
 
             # --- Prev J values ---
             prev_daily_j = df.iloc[loc_idx - 1]['J'] if loc_idx > 0 else None
@@ -108,6 +117,15 @@ def process_ticker(ticker, ticker_map, ticker_type_map, df, df_index, scan_start
                 # Prior Trend Check
                 if not check_prior_trend(direction, df, loc_idx):
                     continue
+
+                # Optional filters — default OFF so existing signals stay unchanged
+                if cfg.get('enable_index_filter'):
+                    idx_patterns = idx_bearish if direction == "Short" else idx_bullish
+                    if not check_index_filter(direction, idx_daily_j, idx_j_prev, idx_patterns, divergence):
+                        continue
+                if cfg.get('enable_ma_cross_filter'):
+                    if not check_ma_cross_filter(direction, df, loc_idx):
+                        continue
 
                 # Pattern Check
                 valid_patterns = check_pattern_filter(direction, df, row, loc_idx)
@@ -155,19 +173,32 @@ def process_ticker(ticker, ticker_map, ticker_type_map, df, df_index, scan_start
                             ml_cache[direction] = current_ml_prob
                             last_train_date_by_dir[direction] = date
                 else:
-                    if direction not in ml_cache:
-                        ml_train_start = df.index[0]
-                        ml_train_end = df.index[-1]
-                        probs, _ = train_and_predict(
+                    # All ML modes are point-in-time: train only on data available
+                    # on `date`. A cached model may be reused if it was trained
+                    # on an earlier or equal date (see retrain_days), never on future data.
+                    reuse_ok = False
+                    if retrain_days > 0:
+                        last_dt = last_train_date_by_dir.get(direction)
+                        if last_dt is not None:
+                            try:
+                                reuse_ok = (date - last_dt) < pd.Timedelta(days=retrain_days)
+                            except Exception:
+                                reuse_ok = False
+                    if reuse_ok and direction in ml_cache:
+                        current_ml_prob = ml_cache.get(direction)
+                    else:
+                        ml_train_start = date - pd.DateOffset(years=3)
+                        if not df.empty and ml_train_start < df.index[0]:
+                            ml_train_start = df.index[0]
+                        current_ml_prob, _ = train_and_predict(
                             ticker,
-                            start_date=str(ml_train_start.date()),
-                            end_date=str(ml_train_end.date()),
+                            start_date=ml_train_start.strftime("%Y-%m-%d"),
+                            end_date=date.strftime("%Y-%m-%d"),
                             df=df,
                             direction=direction
                         )
-                        ml_cache[direction] = probs
-
-                    current_ml_prob = ml_cache.get(direction)
+                        ml_cache[direction] = current_ml_prob
+                        last_train_date_by_dir[direction] = date
                 
                 # Construct Result Item
                 # We need to simulate add_result behavior but return dict
@@ -235,16 +266,17 @@ def process_ticker(ticker, ticker_map, ticker_type_map, df, df_index, scan_start
                      if direction == 'Long': res_item['Signal Strength'] += " + AI_Bull"
                      elif direction == 'Short': res_item['Signal Strength'] += " + AI_Bear"
 
-                # Calculate Stop Loss / Shares
+                # Calculate Stop Loss / Shares (defaults preserve 2*ATR and $500 risk)
                 atr_val = res_item['ATR']
                 price = res_item['Price']
+                atr_mult = float(cfg.get('atr_stop_multiplier', 2.0) or 2.0)
                 if direction == 'Long':
-                    stop_loss = price - (atr_val * 2.0)
+                    stop_loss = price - (atr_val * atr_mult)
                 else:
-                    stop_loss = price + (atr_val * 2.0)
+                    stop_loss = price + (atr_val * atr_mult)
                 res_item['Stop_Loss (止损)'] = round(stop_loss, 2)
                 
-                risk_per_trade = 500
+                risk_per_trade = float(cfg.get('risk_per_trade_dollars', 500) or 500)
                 risk_per_share = abs(price - stop_loss)
                 if risk_per_share > 0:
                     shares = int(risk_per_trade / risk_per_share)
@@ -269,6 +301,13 @@ def run_strategy():
             return
 
         cfg_run = STRATEGY_CONFIG.copy()
+        if not cfg_run.get('enable_index_filter') or not cfg_run.get('enable_ma_cross_filter'):
+            logger.info(
+                "Optional filters default OFF (enable_index_filter=%s, enable_ma_cross_filter=%s). "
+                "Existing signals are unchanged until these flags are explicitly enabled.",
+                cfg_run.get('enable_index_filter'),
+                cfg_run.get('enable_ma_cross_filter'),
+            )
 
         # 1. Update Metadata
         df_stocks = update_stock_metadata()

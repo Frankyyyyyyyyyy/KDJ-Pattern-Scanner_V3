@@ -15,7 +15,8 @@ Usage:
 
 Options:
   --force         强制运行（跳过交易日校验），等价于 FORCE_RUN=1
-  --no-email      不发邮件，等价于 SKIP_EMAIL=1
+  --no-email      保留兼容开关（SKIP_EMAIL=1）。本仓库扫描流程当前不发送邮件，
+                  设置此项不会改变行为，也不会启用发信。
   --limit         仅扫描指定ticker列表（逗号分隔），例如: --limit "AAPL,MSFT,QQQ"
 
 Environment:
@@ -51,7 +52,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 export FORCE_RUN="$FORCE_RUN_VAL"
-export SKIP_EMAIL="$SKIP_EMAIL_VAL"
+export SKIP_EMAIL="$SKIP_EMAIL_VAL"  # accepted for compatibility; sending is not implemented
 if [[ -n "$LIMIT_TICKERS_VAL" ]]; then
   export LIMIT_TICKERS="$LIMIT_TICKERS_VAL"
 fi

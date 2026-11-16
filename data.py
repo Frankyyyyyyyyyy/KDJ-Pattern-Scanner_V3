@@ -9,6 +9,72 @@ from utils import get_last_completed_nyse_session_date
 
 logger = logging.getLogger(__name__)
 
+# Cache policy: refresh a short overlap so the last bars can be corrected,
+# keep the existing CSV schema, and invalidate a ticker's year on adjustment mismatch.
+# Defaults can be overridden with env vars; no existing cache files are rewritten
+# unless update_price_cache() is actually invoked.
+def _env_int(name, default):
+    raw = os.getenv(name, str(default)).strip()
+    try:
+        return int(raw)
+    except Exception:
+        return default
+
+
+def _env_float(name, default):
+    raw = os.getenv(name, str(default)).strip()
+    try:
+        return float(raw)
+    except Exception:
+        return default
+
+
+CACHE_REFRESH_OVERLAP_DAYS = _env_int("CACHE_REFRESH_OVERLAP_DAYS", 7)
+CACHE_PRICE_MISMATCH_TOL = _env_float("CACHE_PRICE_MISMATCH_TOL", 0.01)
+
+
+def yahoo_exclusive_end(end_date):
+    """yfinance `end` is right-open. Convert an inclusive end date to the API argument."""
+    if end_date is None:
+        return None
+    return (pd.Timestamp(end_date).normalize() + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+
+
+def cache_fetch_start(last_dt, start_ts, overlap_days=None):
+    """First date to request, including an overlap behind the last cached bar."""
+    if overlap_days is None:
+        overlap_days = CACHE_REFRESH_OVERLAP_DAYS
+    fetch_start = pd.Timestamp(start_ts).normalize()
+    if last_dt is None or pd.isna(last_dt):
+        return fetch_start
+    last_norm = pd.Timestamp(last_dt).normalize()
+    overlapped = last_norm - pd.Timedelta(days=max(0, int(overlap_days)) - 1)
+    # last_norm - (overlap_days-1) includes last_norm in a window of overlap_days
+    return max(fetch_start, overlapped)
+
+
+def overlap_price_mismatch(old_df, new_df, tol=None):
+    """True if overlapping Date+Ticker closes diverge by more than tol (relative)."""
+    if tol is None:
+        tol = CACHE_PRICE_MISMATCH_TOL
+    if old_df is None or new_df is None or old_df.empty or new_df.empty:
+        return False
+    old = old_df.copy()
+    new = new_df.copy()
+    for d in (old, new):
+        if "Date" not in d.columns:
+            d.reset_index(inplace=True)
+        d["Date"] = pd.to_datetime(d["Date"], errors="coerce").dt.normalize()
+    key = ["Date"]
+    if "Ticker" in old.columns and "Ticker" in new.columns:
+        key = ["Date", "Ticker"]
+    merged = old.merge(new, on=key, suffixes=("_old", "_new"), how="inner")
+    if merged.empty or "Close_old" not in merged.columns or "Close_new" not in merged.columns:
+        return False
+    base = merged["Close_old"].replace(0, pd.NA).abs()
+    rel = (merged["Close_new"] - merged["Close_old"]).abs() / base
+    return bool((rel > tol).fillna(False).any())
+
 
 _LAST_POLYGON_REQUEST_AT = 0.0
 
@@ -175,12 +241,14 @@ def fetch_polygon_batch(tickers, start_date, end_date=None):
     return result
 
 
-def fetch_yahoo_batch(tickers, start_date, yf_session=None):
+def fetch_yahoo_batch(tickers, start_date, yf_session=None, end_date=None, auto_adjust=True):
     """
     从 Yahoo Finance 批量获取数据 (yf.download)。
 
-    Returns:
-        dict: {ticker: DataFrame}
+    end_date is inclusive. yfinance uses a right-open end, so the API call
+    uses yahoo_exclusive_end(end_date). Results are clipped back to end_date.
+
+    auto_adjust defaults to True to stay consistent with the existing cache.
     """
     result = {}
 
@@ -188,11 +256,13 @@ def fetch_yahoo_batch(tickers, start_date, yf_session=None):
         tickers=tickers,
         start=start_date,
         interval="1d",
-        auto_adjust=True,
+        auto_adjust=auto_adjust,
         group_by='ticker',
         threads=False,
         progress=True,
     )
+    if end_date is not None:
+        download_kwargs["end"] = yahoo_exclusive_end(end_date)
     if yf_session is not None:
         download_kwargs['session'] = yf_session
 
@@ -209,6 +279,10 @@ def fetch_yahoo_batch(tickers, start_date, yf_session=None):
                 else:
                     df_t = all_data[ticker].copy()
                 df_t = df_t.dropna(how='all')
+                if end_date is not None and not df_t.empty:
+                    end_ts = pd.Timestamp(end_date).normalize()
+                    idx = pd.to_datetime(df_t.index)
+                    df_t = df_t[idx.normalize() <= end_ts]
                 if not df_t.empty:
                     result[ticker] = df_t
             except (KeyError, Exception):
@@ -246,7 +320,7 @@ def fetch_all_data(tickers, start_date, yf_session=None, end_date=None):
             missing_after = [t for t in tickers if t not in all_result]
             if missing_after:
                 logger.info(f"数据源 [Yahoo Finance]: 获取剩余 {len(missing_after)} 只股票...")
-                yahoo_data = fetch_yahoo_batch(missing_after, start_date, yf_session)
+                yahoo_data = fetch_yahoo_batch(missing_after, start_date, yf_session, end_date=end_date)
                 all_result.update(yahoo_data)
                 logger.info(f"  Yahoo 获取成功: {len(yahoo_data)}/{len(missing_after)}")
 
@@ -289,42 +363,82 @@ def _normalize_ohlcv_df(df):
     return df
 
 
-def _price_cache_path(year: int) -> str:
-    return os.path.join(PRICE_CACHE_DIR, f"prices_{year}.csv")
+def _price_cache_path(year: int, cache_dir=None) -> str:
+    return os.path.join(cache_dir or PRICE_CACHE_DIR, f"prices_{year}.csv")
 
 
-def _read_price_cache(year: int) -> pd.DataFrame:
-    path = _price_cache_path(year)
+def _empty_cache_frame():
+    return pd.DataFrame(columns=['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source'])
+
+
+def _read_price_cache(year: int, cache_dir=None) -> pd.DataFrame:
+    path = _price_cache_path(year, cache_dir=cache_dir)
     if not os.path.exists(path):
-        return pd.DataFrame(columns=['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source'])
+        return _empty_cache_frame()
     try:
         df = pd.read_csv(path)
     except Exception:
-        return pd.DataFrame(columns=['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source'])
+        return _empty_cache_frame()
 
     if df.empty:
-        return pd.DataFrame(columns=['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source'])
+        return _empty_cache_frame()
 
     if 'Date' in df.columns:
         df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    # Keep unknown extra columns but ensure required ones exist
+    for col in ['Ticker', 'Open', 'High', 'Low', 'Close', 'Volume']:
+        if col not in df.columns:
+            return _empty_cache_frame()
+    if 'Source' not in df.columns:
+        df['Source'] = ''
     return df
 
 
-def _write_price_cache(year: int, df: pd.DataFrame) -> str:
-    os.makedirs(PRICE_CACHE_DIR, exist_ok=True)
-    path = _price_cache_path(year)
+def _write_price_cache(year: int, df: pd.DataFrame, cache_dir=None) -> str:
+    dest = cache_dir or PRICE_CACHE_DIR
+    os.makedirs(dest, exist_ok=True)
+    path = _price_cache_path(year, cache_dir=dest)
     df_out = df.copy()
+    cols = ['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source']
+    for c in cols:
+        if c not in df_out.columns:
+            df_out[c] = '' if c == 'Source' else None
     if 'Date' in df_out.columns:
         df_out['Date'] = pd.to_datetime(df_out['Date'], errors='coerce')
         df_out = df_out.dropna(subset=['Date'])
         df_out['Date'] = df_out['Date'].dt.strftime('%Y-%m-%d')
+    df_out = df_out[cols]
     df_out.to_csv(path, index=False, encoding='utf-8-sig')
     return path
 
 
-def update_price_cache_year(tickers, start_date, end_date):
+def _preferred_source(cache_df, ticker):
+    if cache_df is None or cache_df.empty or 'Source' not in cache_df.columns:
+        return None
+    rows = cache_df[cache_df['Ticker'] == ticker].dropna(subset=['Date'])
+    if rows.empty:
+        return None
+    src = rows.sort_values('Date').iloc[-1]['Source']
+    if isinstance(src, str) and src.strip():
+        return src.strip().lower()
+    return None
+
+
+def update_price_cache_year(tickers, start_date, end_date, cache_dir=None,
+                            fetch_polygon_fn=None, fetch_yahoo_fn=None,
+                            overlap_days=None, mismatch_tol=None):
+    """Incrementally update one year of the price cache.
+
+    Tests can inject fetch_* functions and a temporary cache_dir so this never
+    touches the real price_cache/ or hits a network API.
+    """
     if end_date is None:
         end_date = get_last_completed_nyse_session_date()
+
+    fetch_polygon_fn = fetch_polygon_fn or fetch_polygon_bars
+    fetch_yahoo_fn = fetch_yahoo_fn or fetch_yahoo_batch
+    overlap_days = CACHE_REFRESH_OVERLAP_DAYS if overlap_days is None else overlap_days
+    mismatch_tol = CACHE_PRICE_MISMATCH_TOL if mismatch_tol is None else mismatch_tol
 
     end_ts = pd.Timestamp(end_date).normalize()
     year = int(end_ts.year)
@@ -335,13 +449,14 @@ def update_price_cache_year(tickers, start_date, end_date):
     start_ts = max(start_ts, year_start)
     end_ts = min(end_ts, year_end)
 
+    dest = cache_dir or PRICE_CACHE_DIR
     if start_ts > end_ts:
-        return _price_cache_path(year)
+        return _price_cache_path(year, cache_dir=dest)
 
-    os.makedirs(PRICE_CACHE_DIR, exist_ok=True)
-    cache_df = _read_price_cache(year)
+    os.makedirs(dest, exist_ok=True)
+    cache_df = _read_price_cache(year, cache_dir=dest)
     if cache_df.empty:
-        cache_df = pd.DataFrame(columns=['Date', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume', 'Source'])
+        cache_df = _empty_cache_frame()
 
     try:
         if 'Date' in cache_df.columns:
@@ -358,54 +473,95 @@ def update_price_cache_year(tickers, start_date, end_date):
     except Exception:
         last_by_ticker = {}
 
-    polygon_ok = {}
-    yahoo_needed = []
-    yahoo_start_by_ticker = {}
+    def _rows_from_ohlc(ticker, fetch_start, df_src, source):
+        if df_src is None or df_src.empty:
+            return None
+        df_add = df_src[(df_src.index >= fetch_start) & (df_src.index <= end_ts)].copy()
+        if df_add.empty:
+            return None
+        df_add = df_add.reset_index()
+        if 'Ticker' not in df_add.columns:
+            df_add.insert(1, 'Ticker', ticker)
+        else:
+            df_add['Ticker'] = ticker
+        df_add['Source'] = source
+        return df_add
+
+    def _cached_slice(ticker):
+        if cache_df.empty:
+            return _empty_cache_frame()
+        return cache_df[cache_df['Ticker'] == ticker].copy()
+
+    def _invalidate_ticker(ticker):
+        nonlocal cache_df
+        if cache_df.empty:
+            return
+        cache_df = cache_df[cache_df['Ticker'] != ticker].copy()
+        logger.warning(f"  {ticker}: overlap prices diverged; invalidated year {year} cache rows")
+
+    fetched = {}  # ticker -> (source, fetch_start, df)
+
     for ticker in tickers:
         last_dt = last_by_ticker.get(ticker)
-        fetch_start = start_ts
-        if last_dt is not None and pd.notna(last_dt):
-            try:
-                last_norm = pd.Timestamp(last_dt).normalize()
-                fetch_start = max(fetch_start, last_norm + pd.Timedelta(days=1))
-            except Exception:
-                fetch_start = start_ts
-
+        fetch_start = cache_fetch_start(last_dt, start_ts, overlap_days=overlap_days)
         if fetch_start > end_ts:
             continue
 
-        df_poly = fetch_polygon_bars(ticker, fetch_start.strftime('%Y-%m-%d'), end_ts.strftime('%Y-%m-%d'))
-        df_poly = _normalize_ohlcv_df(df_poly)
-        if not df_poly.empty:
-            polygon_ok[ticker] = (fetch_start, df_poly)
-        else:
-            yahoo_needed.append(ticker)
-            yahoo_start_by_ticker[ticker] = fetch_start
+        preferred = _preferred_source(cache_df, ticker)
+        used_source = None
+        df_got = pd.DataFrame()
+
+        # Prefer the last cached source to avoid silently mixing polygon and yahoo.
+        sources = []
+        if preferred in ("polygon", "yahoo"):
+            sources.append(preferred)
+        for src in ("polygon", "yahoo"):
+            if src not in sources:
+                sources.append(src)
+
+        for src in sources:
+            if src == "polygon":
+                raw = fetch_polygon_fn(ticker, fetch_start.strftime('%Y-%m-%d'), end_ts.strftime('%Y-%m-%d'))
+                df_got = _normalize_ohlcv_df(raw)
+            else:
+                raw_map = fetch_yahoo_fn([ticker], fetch_start.strftime('%Y-%m-%d'), end_date=end_ts.strftime('%Y-%m-%d'))
+                if isinstance(raw_map, dict):
+                    df_got = _normalize_ohlcv_df(raw_map.get(ticker, pd.DataFrame()))
+                else:
+                    df_got = _normalize_ohlcv_df(raw_map)
+            if not df_got.empty:
+                used_source = src
+                if preferred and src != preferred:
+                    logger.warning(f"  {ticker}: preferred source {preferred} failed, used {src}")
+                break
+
+        if df_got.empty or used_source is None:
+            logger.warning(f"  {ticker} 无数据")
+            continue
+
+        # If overlap closes disagree, drop this ticker's year cache and refetch from start_ts
+        old_slice = _cached_slice(ticker)
+        new_tmp = df_got.reset_index()
+        new_tmp['Ticker'] = ticker
+        if overlap_price_mismatch(old_slice, new_tmp, tol=mismatch_tol):
+            _invalidate_ticker(ticker)
+            if fetch_start > start_ts:
+                fetch_start = start_ts
+                if used_source == "polygon":
+                    raw = fetch_polygon_fn(ticker, fetch_start.strftime('%Y-%m-%d'), end_ts.strftime('%Y-%m-%d'))
+                    df_got = _normalize_ohlcv_df(raw)
+                else:
+                    raw_map = fetch_yahoo_fn([ticker], fetch_start.strftime('%Y-%m-%d'), end_date=end_ts.strftime('%Y-%m-%d'))
+                    df_got = _normalize_ohlcv_df(raw_map.get(ticker, pd.DataFrame()) if isinstance(raw_map, dict) else raw_map)
+                if df_got.empty:
+                    logger.warning(f"  {ticker}: refetch after invalidation returned no data")
+                    continue
+        fetched[ticker] = (used_source, fetch_start, df_got)
 
     new_rows = []
-    for ticker, (fetch_start, df_poly) in polygon_ok.items():
-        df_add = df_poly[(df_poly.index >= fetch_start) & (df_poly.index <= end_ts)].copy()
-        if df_add.empty:
-            continue
-        df_add = df_add.reset_index()
-        df_add.insert(1, 'Ticker', ticker)
-        df_add['Source'] = 'polygon'
-        new_rows.append(df_add)
-
-    if yahoo_needed:
-        yahoo_min_start = min(yahoo_start_by_ticker.values())
-        yahoo_data = fetch_yahoo_batch(yahoo_needed, yahoo_min_start.strftime('%Y-%m-%d'), yf_session=None)
-        for ticker in yahoo_needed:
-            df_y = _normalize_ohlcv_df(yahoo_data.get(ticker, pd.DataFrame()))
-            if df_y.empty:
-                continue
-            fetch_start = yahoo_start_by_ticker.get(ticker, start_ts)
-            df_add = df_y[(df_y.index >= fetch_start) & (df_y.index <= end_ts)].copy()
-            if df_add.empty:
-                continue
-            df_add = df_add.reset_index()
-            df_add.insert(1, 'Ticker', ticker)
-            df_add['Source'] = 'yahoo'
+    for ticker, (source, fetch_start, df_src) in fetched.items():
+        df_add = _rows_from_ohlc(ticker, fetch_start, df_src, source)
+        if df_add is not None:
             new_rows.append(df_add)
 
     if new_rows:
@@ -420,10 +576,11 @@ def update_price_cache_year(tickers, start_date, end_date):
         cache_df = cache_df.drop_duplicates(subset=['Date', 'Ticker'], keep='last')
         cache_df = cache_df.sort_values(by=['Date', 'Ticker'])
 
-    return _write_price_cache(year, cache_df)
+    return _write_price_cache(year, cache_df, cache_dir=dest)
 
 
-def update_price_cache(tickers, start_date, end_date):
+
+def update_price_cache(tickers, start_date, end_date, cache_dir=None, fetch_polygon_fn=None, fetch_yahoo_fn=None):
     start_ts = pd.Timestamp(start_date).normalize()
     end_ts = pd.Timestamp(end_date).normalize()
     years = list(range(int(start_ts.year), int(end_ts.year) + 1))
@@ -434,17 +591,19 @@ def update_price_cache(tickers, start_date, end_date):
         seg_start = max(start_ts, year_start)
         seg_end = min(end_ts, year_end)
         if seg_start <= seg_end:
-            paths.append(update_price_cache_year(tickers, seg_start.strftime('%Y-%m-%d'), seg_end.strftime('%Y-%m-%d')))
+            paths.append(update_price_cache_year(
+                tickers, seg_start.strftime('%Y-%m-%d'), seg_end.strftime('%Y-%m-%d'),
+                cache_dir=cache_dir, fetch_polygon_fn=fetch_polygon_fn, fetch_yahoo_fn=fetch_yahoo_fn))
     return paths
 
 
-def load_cached_data(tickers, start_date, end_date):
+def load_cached_data(tickers, start_date, end_date, cache_dir=None):
     start_ts = pd.Timestamp(start_date).normalize()
     end_ts = pd.Timestamp(end_date).normalize()
     years = list(range(int(start_ts.year), int(end_ts.year) + 1))
     dfs = []
     for y in years:
-        df_y = _read_price_cache(y)
+        df_y = _read_price_cache(y, cache_dir=cache_dir)
         if df_y is None or df_y.empty:
             continue
         dfs.append(df_y)

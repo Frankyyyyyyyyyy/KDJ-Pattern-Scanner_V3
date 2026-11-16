@@ -1,0 +1,43 @@
+name: Daily ESmain KDJ Scan
+
+on:
+  schedule:
+    # 每天 UTC 21:30 = 美东 17:30（夏令时）/ 16:30（冬令时），ES 期货收盘后
+    - cron: "30 21 * * 1-5"
+  workflow_dispatch: {}
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      # 把上次跑的 state/last_alert.json 拉回来（基于 GitHub cache，按 ref 隔离）
+      - name: Restore state cache
+        uses: actions/cache@v4
+        with:
+          path: state
+          key: esmain-kdj-state-${{ github.ref_name }}
+
+      - name: Run monitor
+        env:
+          POLYGON_API_KEY:    ${{ secrets.POLYGON_API_KEY }}
+          SENDER_EMAIL:       ${{ secrets.SENDER_EMAIL }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECEIVER_EMAIL:     ${{ secrets.RECEIVER_EMAIL }}
+        run: python monitor.py
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: logs/
+          if-no-files-found: ignore

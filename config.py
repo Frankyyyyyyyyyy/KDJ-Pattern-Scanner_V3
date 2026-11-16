@@ -44,8 +44,8 @@ STOCK_LIST_FILE = 'stock_list.csv'
 ARCHIVE_DIR = 'archive'
 PRICE_CACHE_DIR = 'price_cache'
 INDEX_TICKER = 'QQQ'
-SENDER_EMAIL = "wrobincool@gmail.com"
-RECEIVER_EMAIL = "wfancool@outlook.com"
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL")
+RECEIVER_EMAIL = os.environ.get("RECEIVER_EMAIL")
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
 if not GMAIL_APP_PASSWORD:
     GMAIL_APP_PASSWORD = _read_secret_file(os.environ.get("GMAIL_APP_PASSWORD_FILE") or "GMAIL_APP_PASSWORD.txt")
@@ -92,9 +92,21 @@ STRATEGY_CONFIG = {
     # 交易成本
     'round_trip_cost': 0.002,       # 往返交易成本 0.2%
     # 仓位管理
-    'risk_per_trade': 0.01,         # 每笔交易风险占总资金 1%
-    'default_capital': 100000,      # 默认总资金（用于仓位建议）
+    # 当前仓位建议使用下方美元风险与 ATR 倍数；默认值复现既有行为（每笔 500 美元、2*ATR 止损）。
+    # risk_per_trade / default_capital 保留以兼容旧配置，扫描器默认不按资金百分比计算仓位。
+    'risk_per_trade': 0.01,         # 每笔交易风险占总资金 1%（保留，默认未使用）
+    'default_capital': 100000,      # 默认总资金（保留，默认未使用）
+    'risk_per_trade_dollars': 500,  # 每笔交易风险金额（美元），仓位建议实际读取此项
+    'atr_stop_multiplier': 2.0,     # 止损距离 = ATR * 此倍数
+    # 可选过滤器（默认关闭，不改变当前扫描信号集）。
+    # 打开前请确认策略含义：QQQ 指数过滤、均线交叉过滤。
+    'enable_index_filter': False,
+    'enable_ma_cross_filter': False,
 }
+
+# KDJ 暖机约定（主项目与 ESmain 子项目共用同一默认）：
+#   K/D 初值 = 50；在 RSV 尚未定义（前 period-1 根）时保持 50，不把缺失 RSV 填成 50 后再迭代。
+#   对干净、无中段 NaN 的序列，这与旧实现数值等价。不是唯一市场标准，仅是本仓库的明确约定。
 
 # ==========================================
 # Pattern Weights (信号强度权重)

@@ -29,10 +29,21 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _pages_site
+          cp index.html _pages_site/index.html
+          if [ -f signals_latest.csv ]; then
+            cp signals_latest.csv _pages_site/signals_latest.csv
+          else
+            echo "Warning: signals_latest.csv missing; publishing index.html only"
+          fi
+          touch _pages_site/.nojekyll
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_pages_site'
 
       - name: Deploy to GitHub Pages
         id: deployment

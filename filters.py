@@ -1,6 +1,10 @@
 from config import STRATEGY_CONFIG
 import pandas as pd
 
+# check_index_filter / check_ma_cross_filter 是可选过滤器。
+# 默认 enable_index_filter / enable_ma_cross_filter 为 False，扫描流程不会启用它们，
+# 以免在未确认策略含义前改变现有信号集。
+
 def check_index_filter(direction, idx_daily_j, idx_j_prev, idx_patterns, divergence):
     """
     Index 过滤器：检查 QQQ 是否满足方向条件。
@@ -165,7 +169,7 @@ def check_pattern_filter(direction, df, row, loc_idx):
     近 5 天内出现对应方向形态，且：
     - Short: 当前收盘价 ≤ 形态日最高价
     - Long:  当前收盘价 ≥ 形态日最低价
-    - 形态日成交量 > 近5天均量的 80%
+    - 形态日成交量 > 近 lookback 天均量的 volume_ratio（配置默认 0.6）
     """
     cfg = STRATEGY_CONFIG
     pattern_col = 'Bearish_Patterns' if direction == "Short" else 'Bullish_Patterns'

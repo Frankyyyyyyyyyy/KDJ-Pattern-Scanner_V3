@@ -1,0 +1,28 @@
+# --- secrets ---
+.env
+*.env.local
+POLYGON_API_KEY*
+GMAIL_APP_PASSWORD*
+*.pem
+*.key
+
+# --- runtime artifacts ---
+output/
+logs/
+data/*.csv
+!data/.gitkeep
+*.log
+
+# --- python ---
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
